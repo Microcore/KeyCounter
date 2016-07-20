@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import pyHook
-import pythoncom
 import win32api
 import win32con
 import win32event
@@ -171,7 +170,7 @@ class KeyCounter(object):
                     self.MSPF,
                     win32event.QS_ALLEVENTS
                 )
-                pythoncom.PumpWaitingMessages()
+                win32gui.PumpWaitingMessages()
             except KeyboardInterrupt:
                 print 'keyboard interrupt'
                 self.stop()
