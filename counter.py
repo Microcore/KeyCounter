@@ -13,16 +13,19 @@ class KeyCounter(object):
 
     def __init__(self):
         self.count = 0
-        self.MESSAGE = win32gui.RegisterWindowMessage('KeyCounterValueUpdate')
         self.HWND = None
         self.hook = pyHook.HookManager()
+        self.FPS = 60
+        self.MSPF = 1000.0 / self.FPS
 
     def hook_keyboard(self):
         def Key_handler(evt):
             self.count += 1
             window = getattr(self, 'HWND', None)
             if window is not None:
-                win32gui.PostMessage(window, self.MESSAGE, self.count, 0)
+                win32gui.RedrawWindow(
+                    window, None, None, win32con.RDW_INVALIDATE
+                )
 
         self.hook.KeyDown = Key_handler
         self.hook.HookKeyboard()
@@ -32,11 +35,6 @@ class KeyCounter(object):
 
     def create_window(self):
         def wndProc(hWnd, message, wParam, lParam):
-            if message == self.MESSAGE:
-                win32gui.RedrawWindow(
-                    hWnd, None, None, win32con.RDW_INVALIDATE
-                )
-                return 0
             if message == win32con.WM_PAINT:
                 hdc, paintStruct = win32gui.BeginPaint(hWnd)
 
@@ -165,7 +163,7 @@ class KeyCounter(object):
                 win32event.MsgWaitForMultipleObjects(
                     [],
                     0,
-                    16,
+                    self.MSPF,
                     win32event.QS_ALLEVENTS
                 )
                 pythoncom.PumpWaitingMessages()
