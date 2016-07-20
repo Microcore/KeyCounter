@@ -21,10 +21,9 @@ class KeyCounter(object):
     def hook_keyboard(self):
         def Key_handler(evt):
             self.count += 1
-            window = getattr(self, 'HWND', None)
-            if window is not None:
+            if self.HWND is not None:
                 win32gui.RedrawWindow(
-                    window, None, None, win32con.RDW_INVALIDATE
+                    self.HWND, None, None, win32con.RDW_INVALIDATE
                 )
 
         self.hook.KeyDown = Key_handler
@@ -33,25 +32,30 @@ class KeyCounter(object):
     def hook_mouse(self):
         pass
 
+    def init_font(self):
+        if self.HWND is None:
+            self.create_window()
+
+        # http://msdn.microsoft.com/en-us/library/windows/desktop/dd145037(v=vs.85).aspx
+        lf = win32gui.LOGFONT()
+        lf.lfFaceName = "InputMono"
+        fontSize = 36
+        hdc, paintStruct = win32gui.BeginPaint(self.HWND)
+        dpiScale = win32ui.GetDeviceCaps(
+            hdc, win32con.LOGPIXELSX
+        ) / 60.0
+        lf.lfHeight = int(round(dpiScale * fontSize))
+        # lf.lfWeight = 150
+        # Use nonantialiased to remove the white edges around the text.
+        # lf.lfQuality = win32con.NONANTIALIASED_QUALITY
+        lf.lfQuality = win32con.CLEARTYPE_QUALITY
+        self.font = win32gui.CreateFontIndirect(lf)
+
     def create_window(self):
         def wndProc(hWnd, message, wParam, lParam):
             if message == win32con.WM_PAINT:
-                hdc, paintStruct = win32gui.BeginPaint(hWnd)
-
-                dpiScale = win32ui.GetDeviceCaps(
-                    hdc, win32con.LOGPIXELSX
-                ) / 60.0
-                fontSize = 36
-
-                # http://msdn.microsoft.com/en-us/library/windows/desktop/dd145037(v=vs.85).aspx
-                lf = win32gui.LOGFONT()
-                lf.lfFaceName = "InputMono"
-                lf.lfHeight = int(round(dpiScale * fontSize))
-                # lf.lfWeight = 150
-                # Use nonantialiased to remove the white edges around the text.
-                lf.lfQuality = win32con.NONANTIALIASED_QUALITY
-                hf = win32gui.CreateFontIndirect(lf)
-                win32gui.SelectObject(hdc, hf)
+                # Set the font
+                win32gui.SelectObject(hdc, self.font)
 
                 # rect = win32gui.GetClientRect(hWnd)
                 rect = list(win32gui.GetClientRect(hWnd))
@@ -157,6 +161,7 @@ class KeyCounter(object):
         self.hook_keyboard()
         self.hook_mouse()
         self.create_window()
+        self.init_font()
 
         while 1:
             try:
