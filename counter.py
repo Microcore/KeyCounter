@@ -15,7 +15,8 @@ class KeyCounter(object):
         self.HWND = None
         self.hook = pyHook.HookManager()
         self.FPS = 60
-        self.MSPF = 1000.0 / self.FPS
+        self.MSPF = int(round(1000.0 / self.FPS))
+        self.font = None
 
     def hook_keyboard(self):
         def Key_handler(evt):
@@ -31,15 +32,11 @@ class KeyCounter(object):
     def hook_mouse(self):
         pass
 
-    def init_font(self):
-        if self.HWND is None:
-            self.create_window()
-
+    def init_font(self, hdc, paintStruct):
         # http://msdn.microsoft.com/en-us/library/windows/desktop/dd145037(v=vs.85).aspx
         lf = win32gui.LOGFONT()
         lf.lfFaceName = "InputMono"
         fontSize = 36
-        hdc, paintStruct = win32gui.BeginPaint(self.HWND)
         dpiScale = win32ui.GetDeviceCaps(
             hdc, win32con.LOGPIXELSX
         ) / 60.0
@@ -53,19 +50,22 @@ class KeyCounter(object):
     def create_window(self):
         def wndProc(hWnd, message, wParam, lParam):
             if message == win32con.WM_PAINT:
+                hdc, paintStruct = win32gui.BeginPaint(self.HWND)
+                if self.font is None:
+                    self.init_font(hdc, paintStruct)
                 # Set the font
                 win32gui.SelectObject(hdc, self.font)
 
                 # rect = win32gui.GetClientRect(hWnd)
                 rect = list(win32gui.GetClientRect(hWnd))
                 # left, top, right, bottom
-                rect[-1] = rect[-1] - 40
+                rect[3] -= 40
                 rect = tuple(rect)
                 # http://msdn.microsoft.com/en-us/library/windows/desktop/dd162498(v=vs.85).aspx
                 win32gui.DrawText(
                     hdc,
                     str(self.count),
-                    -1,
+                    len(str(self.count)),  # somehow -1 does not work
                     rect,
                     (win32con.DT_BOTTOM | win32con.DT_NOCLIP
                      | win32con.DT_SINGLELINE | win32con.DT_RIGHT)
@@ -160,7 +160,6 @@ class KeyCounter(object):
         self.hook_keyboard()
         self.hook_mouse()
         self.create_window()
-        self.init_font()
 
         while 1:
             try:
@@ -173,7 +172,7 @@ class KeyCounter(object):
                 win32gui.PumpWaitingMessages()
             except KeyboardInterrupt:
                 print 'keyboard interrupt'
-                self.stop()
+                return self.stop()
 
 
 if __name__ == '__main__':
