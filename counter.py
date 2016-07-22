@@ -14,7 +14,7 @@ import win32ui
 class KeyCounter(object):
 
     def __init__(self):
-        self.count = 0
+        self.key_count = 0
         self.HWND = None
         self.hook = pyHook.HookManager()
         self.FPS = 60
@@ -30,14 +30,15 @@ class KeyCounter(object):
             ('Quit', self.stop),
             ('Reset', self.reset_count),
         )
+        self.__last_text_extent = (0, 0)
 
     def reset_count(self):
-        self.count = 0
+        self.key_count = 0
         win32gui.RedrawWindow(self.HWND, None, None, win32con.RDW_INVALIDATE)
 
     def hook_keyboard(self):
         def Key_handler(evt):
-            self.count += 1
+            self.key_count += 1
             if self.HWND is not None:
                 win32gui.RedrawWindow(
                     self.HWND, None, None, win32con.RDW_INVALIDATE
@@ -45,9 +46,6 @@ class KeyCounter(object):
 
         self.hook.KeyDown = Key_handler
         self.hook.HookKeyboard()
-
-    def hook_mouse(self):
-        pass
 
     def init_font(self, hdc, paintStruct):
         # http://msdn.microsoft.com/en-us/library/windows/desktop/dd145037(v=vs.85).aspx
@@ -105,14 +103,14 @@ class KeyCounter(object):
                 if lParam == win32con.WM_RBUTTONUP:
                     self.show_menu()
                 return 0
-            if message == win32con.WM_COMMAND:
+            elif message == win32con.WM_COMMAND:
                 self.execute_menu_item(win32gui.LOWORD(wParam))
                 return 0
-            if message == self.__MESSAGE_TC:
+            elif message == self.__MESSAGE_TC:
                 self.update_tray_icon()
                 return 0
-            if message == win32con.WM_PAINT:
-                hdc, paintStruct = win32gui.BeginPaint(self.HWND)
+            elif message == win32con.WM_PAINT:
+                hdc, paintStruct = win32gui.BeginPaint(hWnd)
                 if self.font is None:
                     self.init_font(hdc, paintStruct)
                 # Set the font
@@ -123,21 +121,30 @@ class KeyCounter(object):
                 # left, top, right, bottom
                 rect[3] -= 40
                 rect = tuple(rect)
+                text = str(self.key_count)
+                # Tricky way to clear the background using space characters
+                # extent is SIZE struct like (width_pixels, height_pixels)
+                while self.__last_text_extent[0] > win32gui.GetTextExtentPoint32(
+                    hdc, text
+                )[0]:
+                    text = ' ' + text
                 # http://msdn.microsoft.com/en-us/library/windows/desktop/dd162498(v=vs.85).aspx
                 win32gui.DrawText(
                     hdc,
-                    str(self.count),
-                    len(str(self.count)),  # somehow -1 does not work
+                    text,
+                    len(text),  # somehow -1 does not work
                     rect,
                     (win32con.DT_BOTTOM | win32con.DT_NOCLIP
                      | win32con.DT_SINGLELINE | win32con.DT_RIGHT)
+                )
+                self.__last_text_extent = win32gui.GetTextExtentPoint32(
+                    hdc, text
                 )
                 win32gui.EndPaint(hWnd, paintStruct)
                 return 0
 
             elif message == win32con.WM_DESTROY:
                 print 'Window destroyed'
-                win32gui.PostQuitMessage(0)
                 return 0
             elif message == win32con.WM_CLOSE:
                 print 'Closing the window.'
@@ -196,9 +203,13 @@ class KeyCounter(object):
 
         # http://msdn.microsoft.com/en-us/library/windows/desktop/ms633540(v=vs.85).aspx
         win32gui.SetLayeredWindowAttributes(
-            hWindow, 0x00ffffff, 255,
+            hWindow,
+            0x00ffffff,
+            128,  # foreground transparency, 255 means opaque
             win32con.LWA_COLORKEY | win32con.LWA_ALPHA
         )
+        # Transparent background
+        win32gui.SetBkMode(hWindow, win32con.TRANSPARENT)
 
         # http://msdn.microsoft.com/en-us/library/windows/desktop/dd145167(v=vs.85).aspx
         # win32gui.UpdateWindow(hWindow)
@@ -248,7 +259,6 @@ class KeyCounter(object):
 
     def start(self):
         self.hook_keyboard()
-        self.hook_mouse()
         self.create_window()
         self.update_tray_icon()
 
