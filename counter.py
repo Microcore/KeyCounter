@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import random
+
 import pyHook
 import win32api
 import win32con
 import win32event
 import win32gui
+import win32gui_struct
 import win32ui
 
 
@@ -17,6 +20,20 @@ class KeyCounter(object):
         self.FPS = 60
         self.MSPF = int(round(1000.0 / self.FPS))
         self.font = None
+        self.tooltip = 'Key Counter'
+        # Private message to be used in THIS program ONLY
+        self.MESSAGE = random.randint(win32con.WM_USER, 0x7FFF)
+        self.__MESSAGE_TC = win32gui.RegisterWindowMessage('TaskbarCreated')
+        self.__NOTIFY_ID = None
+        self.MENU = None
+        self.MENU_ITEMS = (
+            ('Quit', self.stop),
+            ('Reset', self.reset_count),
+        )
+
+    def reset_count(self):
+        self.count = 0
+        win32gui.RedrawWindow(self.HWND, None, None, win32con.RDW_INVALIDATE)
 
     def hook_keyboard(self):
         def Key_handler(evt):
@@ -44,11 +61,56 @@ class KeyCounter(object):
         # lf.lfWeight = 150
         # Use nonantialiased to remove the white edges around the text.
         # lf.lfQuality = win32con.NONANTIALIASED_QUALITY
-        lf.lfQuality = win32con.CLEARTYPE_QUALITY
+        lf.lfQuality = win32con.NONANTIALIASED_QUALITY
         self.font = win32gui.CreateFontIndirect(lf)
+
+    def create_menu(self):
+        '''Create context menu'''
+        if self.MENU is not None:
+            return
+        self.MENU = win32gui.CreatePopupMenu()
+        # Add menu items
+        for index, item in enumerate(self.MENU_ITEMS):
+            menu_item, __ = win32gui_struct.PackMENUITEMINFO(
+                text=item[0], wID=index
+            )
+            # https://msdn.microsoft.com/en-us/library/windows/desktop/ms647988(v=vs.85).aspx
+            win32gui.InsertMenuItem(self.MENU, 0, 1, menu_item)
+
+    def show_menu(self):
+        if self.MENU is None:
+            self.create_menu()
+        position = win32gui.GetCursorPos()
+        win32gui.SetForegroundWindow(self.HWND)
+        win32gui.TrackPopupMenu(
+            self.MENU,
+            win32con.TPM_LEFTALIGN,
+            position[0],
+            position[1],
+            0,
+            self.HWND,
+            None
+        )
+        win32gui.PostMessage(self.HWND, win32con.WM_NULL, None, None)
+
+    def execute_menu_item(self, index):
+        '''Execute menu item function'''
+        func = self.MENU_ITEMS[index][-1]
+        if callable(func):
+            func()
 
     def create_window(self):
         def wndProc(hWnd, message, wParam, lParam):
+            if message == self.MESSAGE:
+                if lParam == win32con.WM_RBUTTONUP:
+                    self.show_menu()
+                return 0
+            if message == win32con.WM_COMMAND:
+                self.execute_menu_item(win32gui.LOWORD(wParam))
+                return 0
+            if message == self.__MESSAGE_TC:
+                self.update_tray_icon()
+                return 0
             if message == win32con.WM_PAINT:
                 hdc, paintStruct = win32gui.BeginPaint(self.HWND)
                 if self.font is None:
@@ -73,11 +135,12 @@ class KeyCounter(object):
                 win32gui.EndPaint(hWnd, paintStruct)
                 return 0
 
-            elif message == win32con.WM_DESTROY\
-                    or message == win32con.WM_CLOSE\
-                    or message == win32con.WM_DESTROY:
-                print 'Closing the window.'
+            elif message == win32con.WM_DESTROY:
+                print 'Window destroyed'
                 win32gui.PostQuitMessage(0)
+                return 0
+            elif message == win32con.WM_CLOSE:
+                print 'Closing the window.'
                 return 0
 
             else:
@@ -152,14 +215,42 @@ class KeyCounter(object):
 
         self.HWND = hWindow
 
+    def update_tray_icon(self):
+        try:
+            hIcon = win32gui.LoadIcon(
+                win32gui.GetModuleHandle(None), win32con.IDI_APPLICATION
+            )
+        except:
+            hIcon = win32gui.LoadIcon(None, win32con.IDI_APPLICATION)
+        if self.__NOTIFY_ID is None:
+            message = win32gui.NIM_ADD
+        else:
+            message = win32gui.NIM_MODIFY
+        self.__NOTIFY_ID = (
+            self.HWND,
+            0,
+            win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP,
+            self.MESSAGE,
+            hIcon,
+            self.tooltip
+        )
+        win32gui.Shell_NotifyIcon(message, self.__NOTIFY_ID)
+
     def stop(self):
-        win32gui.PostMessage(self.HWND, win32con.WM_CLOSE, 0, 0)
-        win32gui.PostQuitMessage(0)
+        if getattr(self, 'hook', None) is not None:
+            del self.hook
+        if self.HWND is not None:
+            win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, (self.HWND, 0))
+            # win32gui.PostMessage(self.HWND, win32con.WM_CLOSE, 0, 0)
+            win32gui.DestroyWindow(self.HWND)
+            self.HWND = None
+        raise SystemExit(0)
 
     def start(self):
         self.hook_keyboard()
         self.hook_mouse()
         self.create_window()
+        self.update_tray_icon()
 
         while 1:
             try:
@@ -170,9 +261,8 @@ class KeyCounter(object):
                     win32event.QS_ALLEVENTS
                 )
                 win32gui.PumpWaitingMessages()
-            except KeyboardInterrupt:
-                print 'keyboard interrupt'
-                return self.stop()
+            except SystemExit:
+                win32gui.PostQuitMessage(0)
 
 
 if __name__ == '__main__':
