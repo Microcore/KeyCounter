@@ -171,7 +171,7 @@ class KeyCounter(object):
         exStyle = (
             win32con.WS_EX_COMPOSITED | win32con.WS_EX_LAYERED
             | win32con.WS_EX_NOACTIVATE | win32con.WS_EX_TOPMOST
-            | win32con.WS_EX_TRANSPARENT
+            | win32con.WS_EX_TRANSPARENT | win32con.WS_EX_TOOLWINDOW
         )
 
         # http://msdn.microsoft.com/en-us/library/windows/desktop/ms632600(v=vs.85).aspx
