@@ -10,6 +10,8 @@ import win32gui
 import win32gui_struct
 import win32ui
 
+from dialogs import slider
+
 
 class KeyCounter(object):
 
@@ -28,9 +30,12 @@ class KeyCounter(object):
         self.MENU = None
         self.MENU_ITEMS = (
             ('Quit', self.stop),
+            ('Set transparency', self.set_transparency),
             ('Reset', self.reset_count),
         )
         self.__last_text_extent = (0, 0)
+        self.__transparency_setter = None
+        self.transparency = 128
 
     def reset_count(self):
         self.key_count = 0
@@ -46,6 +51,15 @@ class KeyCounter(object):
 
         self.hook.KeyDown = Key_handler
         self.hook.HookKeyboard()
+
+    def set_transparency(self):
+        def on_value(value):
+            self.update_window_transparency(value)
+
+        dialog = slider.TransparencySliderDialog(
+            self.transparency, on_value=on_value
+        )
+        dialog.DoModal()
 
     def init_font(self, hdc, paintStruct):
         # http://msdn.microsoft.com/en-us/library/windows/desktop/dd145037(v=vs.85).aspx
@@ -96,6 +110,23 @@ class KeyCounter(object):
         func = self.MENU_ITEMS[index][-1]
         if callable(func):
             func()
+
+    def update_window_transparency(self, value=None):
+        if value is not None:
+            value = int(value)
+            if value < 0:
+                value = 0
+            elif value > 255:
+                value = 255
+            self.transparency = value
+
+        # http://msdn.microsoft.com/en-us/library/windows/desktop/ms633540(v=vs.85).aspx
+        win32gui.SetLayeredWindowAttributes(
+            self.HWND,
+            0x00ffffff,
+            self.transparency,  # foreground transparency, 255 means opaque
+            win32con.LWA_COLORKEY | win32con.LWA_ALPHA
+        )
 
     def create_window(self):
         def wndProc(hWnd, message, wParam, lParam):
@@ -200,14 +231,8 @@ class KeyCounter(object):
             hInstance,
             None  # lpParam
         )
-
-        # http://msdn.microsoft.com/en-us/library/windows/desktop/ms633540(v=vs.85).aspx
-        win32gui.SetLayeredWindowAttributes(
-            hWindow,
-            0x00ffffff,
-            128,  # foreground transparency, 255 means opaque
-            win32con.LWA_COLORKEY | win32con.LWA_ALPHA
-        )
+        self.HWND = hWindow
+        self.update_window_transparency()
         # Transparent background
         win32gui.SetBkMode(hWindow, win32con.TRANSPARENT)
 
@@ -223,8 +248,6 @@ class KeyCounter(object):
 
         # http://msdn.microsoft.com/en-us/library/windows/desktop/ms633548(v=vs.85).aspx
         # win32gui.ShowWindow(hWindow, win32con.SW_SHOW)
-
-        self.HWND = hWindow
 
     def update_tray_icon(self):
         try:
