@@ -4,6 +4,8 @@ import platform
 
 
 def patch_pyhook_64bit():
+    # This patch comes from pyHook bug#1:
+    # https://sourceforge.net/p/pyhook/bugs/1/
     import pyHook
     from PyHook import KeyboardEvent
 
