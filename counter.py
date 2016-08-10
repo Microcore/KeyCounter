@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 import random
 
+import patch
+patch.patch_all()
+
 import pyHook
 import win32api
 import win32con
@@ -49,7 +52,7 @@ class KeyCounter(object):
                     self.HWND, None, None, win32con.RDW_INVALIDATE
                 )
 
-        self.hook.KeyDown = Key_handler
+        self.hook.KeyUp = Key_handler
         self.hook.HookKeyboard()
 
     def set_transparency(self):
