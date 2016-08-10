@@ -12,6 +12,7 @@ import win32event
 import win32gui
 import win32gui_struct
 import win32ui
+import winerror
 
 from dialogs import slider
 
@@ -39,6 +40,8 @@ class KeyCounter(object):
         self.__last_text_extent = (0, 0)
         self.__transparency_setter = None
         self.transparency = 128
+        self.SICHECK_EVENT = None
+        self.GUID = '76B80C3C-11AB-47CD-A124-BADB07F41DB8'
 
     def reset_count(self):
         self.key_count = 0
@@ -273,6 +276,29 @@ class KeyCounter(object):
         )
         win32gui.Shell_NotifyIcon(message, self.__NOTIFY_ID)
 
+    def instance_running(self):
+        '''
+        Use CreateEvent to make sure there is only one instance running
+        '''
+        if self.SICHECK_EVENT is None:
+            self.SICHECK_EVENT = win32event.CreateEvent(
+                None, 1, 0, self.GUID
+            )
+            # An instance is already running, quit
+            if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
+                win32gui.MessageBox(
+                    self.HWND,
+                    'You can only run one instance at a time',
+                    'Seems like KeyCounter is already running',
+                    win32con.MB_OK
+                )
+                return self.stop()
+
+    def clear_instance_check_event(self):
+        '''Close handle created by CreateEvent'''
+        if self.SICHECK_EVENT is not None:
+            win32api.CloseHandle(self.SICHECK_EVENT)
+
     def stop(self):
         if getattr(self, 'hook', None) is not None:
             del self.hook
@@ -281,9 +307,16 @@ class KeyCounter(object):
             # win32gui.PostMessage(self.HWND, win32con.WM_CLOSE, 0, 0)
             win32gui.DestroyWindow(self.HWND)
             self.HWND = None
+        self.clear_instance_check_event()
         raise SystemExit(0)
 
     def start(self):
+        if self.instance_running():
+            try:
+                self.stop()
+            except SystemExit:
+                return win32gui.PostQuitMessage(0)
+
         self.hook_keyboard()
         self.create_window()
         self.update_tray_icon()
