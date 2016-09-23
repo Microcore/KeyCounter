@@ -153,26 +153,34 @@ class KeyCounter(object):
                 # Set the font
                 win32gui.SelectObject(hdc, self.font)
 
-                # rect = win32gui.GetClientRect(hWnd)
-                rect = list(win32gui.GetClientRect(hWnd))
-                # left, top, right, bottom
-                rect[3] -= 40
-                rect = tuple(rect)
                 text = str(self.key_count)
                 # Tricky way to clear the background using space characters
                 # extent is SIZE struct like (width_pixels, height_pixels)
-                while self.__last_text_extent[0] > win32gui.GetTextExtentPoint32(
+                while self.__last_text_extent[0] > win32gui.GetTextExtentPoint32(  # noqa
                     hdc, text
                 )[0]:
                     text = ' ' + text
+                # Dynamically change window size & position
+                screen_width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
+                screen_height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+                text_extent = win32gui.GetTextExtentPoint32(hdc, text)
+                win32gui.SetWindowPos(
+                    self.HWND,
+                    None,
+                    screen_width - text_extent[0],
+                    screen_height - text_extent[1] - 40,  # height of taskbar
+                    text_extent[0],
+                    text_extent[1],
+                    0
+                )
                 # http://msdn.microsoft.com/en-us/library/windows/desktop/dd162498(v=vs.85).aspx
                 win32gui.DrawText(
                     hdc,
                     text,
                     len(text),  # somehow -1 does not work
-                    rect,
-                    (win32con.DT_BOTTOM | win32con.DT_NOCLIP
-                     | win32con.DT_SINGLELINE | win32con.DT_RIGHT)
+                    tuple(win32gui.GetClientRect(hWnd)),
+                    (win32con.DT_TOP | win32con.DT_NOCLIP
+                     | win32con.DT_SINGLELINE | win32con.DT_LEFT)
                 )
                 self.__last_text_extent = win32gui.GetTextExtentPoint32(
                     hdc, text
@@ -223,15 +231,20 @@ class KeyCounter(object):
         style = win32con.WS_DISABLED | win32con.WS_POPUP | win32con.WS_VISIBLE
 
         # http://msdn.microsoft.com/en-us/library/windows/desktop/ms632680(v=vs.85).aspx
+        screen_width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
+        screen_height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+        # We'll update window size if we need more space
+        init_width = 1
+        init_height = 1
         hWindow = win32gui.CreateWindowEx(
             exStyle,
             wndClassAtom,
             None,  # WindowName
             style,
-            0,  # x
-            0,  # y
-            win32api.GetSystemMetrics(win32con.SM_CXSCREEN),  # width
-            win32api.GetSystemMetrics(win32con.SM_CYSCREEN),  # height
+            screen_width - init_width,  # x
+            screen_height - init_height,  # y
+            init_width,  # width
+            init_height,  # height
             None,  # hWndParent
             None,  # hMenu
             hInstance,
