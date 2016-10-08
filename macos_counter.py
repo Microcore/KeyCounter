@@ -26,6 +26,7 @@ else:
     ROOT_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
+# TODO turn all `print` into NSLog or normal logging
 class KeyCounter(object):
 
     def __init__(self):
@@ -35,13 +36,19 @@ class KeyCounter(object):
         # icon=os.path.join(ROOT_PATH, 'resources', 'Keyboard-100.png')
         super(KeyCounter, self).__init__()
         self.key_count = 0
-        self._title = str(self.key_count)
-        self.icon = NSImage.alloc().initByReferencingFile_(
-            os.path.join(ROOT_PATH, 'resources', 'Keyboard-100.png')
-        )
-        self.icon.setScalesWhenResized_(True)
-        self.icon.setSize_((20, 20))
-        self.icon.setTemplate_(True)
+        self.icon = None
+
+        # Currently we're limiting icon to source code mode only
+        # TODO make menubar icon togglable
+        if not getattr(sys, 'frozen', False):
+            self.icon = NSImage.alloc().initByReferencingFile_(
+                os.path.join(ROOT_PATH, 'resources', 'Keyboard-100.png')
+            )
+            self.icon.setScalesWhenResized_(True)
+            self.icon.setSize_((20, 20))
+            self.icon.setTemplate_(True)
+
+        self.title = str(self.key_count)
 
     @property
     def title(self):
@@ -49,7 +56,10 @@ class KeyCounter(object):
 
     @title.setter
     def title(self, title):
-        self._title = '{}'.format(title)
+        if self.icon is not None:
+            self._title = u' · {}'.format(title)
+        else:
+            self._title = title
         try:
             self.delegate.setStatusBarTitle()
         except AttributeError:
@@ -109,21 +119,20 @@ class KeyCounter(object):
                 print 'will terminate'
                 return None
 
-            def initializeStatusBar(self):
-                self.nsstatusitem = NSStatusBar.systemStatusBar().statusItemWithLength_(-1)  # variable dimensions
-                self.nsstatusitem.setHighlightMode_(True)
-
-                self.setStatusBarIcon()
-                self.setStatusBarTitle()
-
+            def _init_menu(self):
                 menu = NSMenu.alloc().init()
-                # action `xxx:` will bind to `xxx_` method of delegate
+
                 # Reset menu
+                # action `xxx:` will bind to `xxx_` method of delegate
                 reset_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                    unicode('Reset'), 'reset:', ''
+                    unicode('Reset'), 'reset:', 'n'
                 )
+                # Tell objc to look for action method in this specific object
                 reset_menuitem.setTarget_(sc)
                 menu.addItem_(reset_menuitem)
+
+                # Separator
+                menu.addItem_(NSMenuItem.separatorItem())
 
                 # Icons8 link menu
                 icon_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
@@ -132,20 +141,34 @@ class KeyCounter(object):
                 icon_menuitem.setTarget_(sc)
                 menu.addItem_(icon_menuitem)
 
+                # TODO togglable menubar icon
+
+                # Separator
+                menu.addItem_(NSMenuItem.separatorItem())
+
                 # Quit menu
                 quit_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                    unicode('Quit'), 'quit:', ''
+                    unicode('Quit'), 'quit:', 'q'
                 )
                 quit_menuitem.setTarget_(sc)
                 menu.addItem_(quit_menuitem)
 
-                self.nsstatusitem.setMenu_(menu)  # mainmenu of our status bar spot (_menu attribute is NSMenu)
+                self.nsstatusitem.setMenu_(menu)
+
+            def initializeStatusBar(self):
+                self.nsstatusitem = NSStatusBar.systemStatusBar().statusItemWithLength_(-1)
+                self.nsstatusitem.setHighlightMode_(True)
+
+                self.setStatusBarIcon()
+                self.setStatusBarTitle()
+                self._init_menu()
 
             def setStatusBarTitle(self):
                 self.nsstatusitem.setTitle_(sc.title)
 
             def setStatusBarIcon(self):
-                self.nsstatusitem.setImage_(sc.icon)
+                if sc.icon is not None:
+                    self.nsstatusitem.setImage_(sc.icon)
 
         return AppDelegate
 
