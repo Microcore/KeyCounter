@@ -3,6 +3,7 @@
 import os.path
 import signal
 import sys
+import webbrowser
 
 from AppKit import (
     NSApplication, NSApp, NSStatusBar, NSMenu, NSMenuItem,
@@ -81,6 +82,10 @@ class KeyCounter(object):
     def reset_(self, notification):
         self.reset_count()
 
+    # Action alias for `iconprovider:`
+    def iconprovider_(self, notification):
+        webbrowser.open('https://icons8.com/')
+
     def _create_app_delegate(self):
         sc = self
 
@@ -113,18 +118,27 @@ class KeyCounter(object):
 
                 menu = NSMenu.alloc().init()
                 # action `xxx:` will bind to `xxx_` method of delegate
-                quit_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                    unicode('Quit'), 'quit:', ''
-                )
-                quit_menuitem.setTarget_(sc)
-
+                # Reset menu
                 reset_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
                     unicode('Reset'), 'reset:', ''
                 )
                 reset_menuitem.setTarget_(sc)
-
                 menu.addItem_(reset_menuitem)
+
+                # Icons8 link menu
+                icon_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                    unicode('Icons by Icons8'), 'iconprovider:', ''
+                )
+                icon_menuitem.setTarget_(sc)
+                menu.addItem_(icon_menuitem)
+
+                # Quit menu
+                quit_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                    unicode('Quit'), 'quit:', ''
+                )
+                quit_menuitem.setTarget_(sc)
                 menu.addItem_(quit_menuitem)
+
                 self.nsstatusitem.setMenu_(menu)  # mainmenu of our status bar spot (_menu attribute is NSMenu)
 
             def setStatusBarTitle(self):
