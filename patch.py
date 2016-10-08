@@ -28,3 +28,5 @@ def patch_all():
     if platform.system() == 'Windows'\
             and platform.architecture()[0].startswith('64'):
         patch_pyhook_64bit()
+    if platform.system() == 'Darwin':
+        pass
