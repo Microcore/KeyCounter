@@ -91,3 +91,6 @@ ENV/
 # tmp file
 *.swp
 *.~
+
+# macOS
+.DS_Store
