@@ -35,6 +35,7 @@ class KeyCounter(object):
         # title=str(self.count),
         # icon=os.path.join(ROOT_PATH, 'resources', 'Keyboard-100.png')
         super(KeyCounter, self).__init__()
+        self.name = 'KeyCounter'
         self.key_count = 0
         self.icon = None
 
@@ -122,6 +123,12 @@ class KeyCounter(object):
             def _init_menu(self):
                 menu = NSMenu.alloc().init()
 
+                # App name menu
+                appname_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                    unicode(sc.name), None, ''
+                )
+                menu.addItem_(appname_menuitem)
+
                 # Reset menu
                 # action `xxx:` will bind to `xxx_` method of delegate
                 reset_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
@@ -158,6 +165,8 @@ class KeyCounter(object):
             def initializeStatusBar(self):
                 self.nsstatusitem = NSStatusBar.systemStatusBar().statusItemWithLength_(-1)
                 self.nsstatusitem.setHighlightMode_(True)
+                # This does not seem to work, we'lls display a menu item instead
+                # self.nsstatusitem.setToolTip_('KeyCounter')
 
                 self.setStatusBarIcon()
                 self.setStatusBarTitle()
