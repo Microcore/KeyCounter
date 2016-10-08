@@ -41,9 +41,8 @@ if compat.is_darwin:
     app = BUNDLE(
         coll,
         name='KeyCounter.app',
-        icon=None,
+        icon=os.path.join(compat.getcwd(), 'resources', 'Unchecked Circle Filled.icns'),
         bundle_identifier='org.microcore.keycounter',
-        # bundle_identifier='org.qt-project.Qt.QtWebEngineCore',
         info_plist={
             'NSHighResolutionCapable': 'True',
             # TODO i18n app name
