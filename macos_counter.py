@@ -20,34 +20,15 @@ from PyObjCTools import AppHelper
 from patch import patch_all
 patch_all()
 
-if getattr(sys, 'frozen', False):
-    ROOT_PATH = os.path.dirname(sys.executable)
-else:
-    ROOT_PATH = os.path.abspath(os.path.dirname(__file__))
-
 
 # TODO turn all `print` into NSLog or normal logging
 class KeyCounter(object):
 
     def __init__(self):
-        self.count = 0
-        # 'KeyCounter',  # name
-        # title=str(self.count),
-        # icon=os.path.join(ROOT_PATH, 'resources', 'Keyboard-100.png')
         super(KeyCounter, self).__init__()
         self.name = 'KeyCounter'
         self.key_count = 0
         self.icon = None
-
-        # Currently we're limiting icon to source code mode only
-        # TODO make menubar icon togglable
-        if not getattr(sys, 'frozen', False):
-            self.icon = NSImage.alloc().initByReferencingFile_(
-                os.path.join(ROOT_PATH, 'resources', 'Keyboard-100.png')
-            )
-            self.icon.setScalesWhenResized_(True)
-            self.icon.setSize_((20, 20))
-            self.icon.setTemplate_(True)
 
         self.title = str(self.key_count)
 
@@ -57,10 +38,7 @@ class KeyCounter(object):
 
     @title.setter
     def title(self, title):
-        if self.icon is not None:
-            self._title = u' · {}'.format(title)
-        else:
-            self._title = title
+        self._title = title
         try:
             self.delegate.setStatusBarTitle()
         except AttributeError:
@@ -92,10 +70,6 @@ class KeyCounter(object):
     # Action alias for `reset:`
     def reset_(self, notification):
         self.reset_count()
-
-    # Action alias for `iconprovider:`
-    def iconprovider_(self, notification):
-        webbrowser.open('https://icons8.com/')
 
     def _create_app_delegate(self):
         sc = self
@@ -139,18 +113,6 @@ class KeyCounter(object):
                 # Tell objc to look for action method in this specific object
                 reset_menuitem.setTarget_(sc)
                 menu.addItem_(reset_menuitem)
-
-                # Separator
-                menu.addItem_(NSMenuItem.separatorItem())
-
-                # Icons8 link menu
-                icon_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(  # noqa
-                    unicode('Icons by Icons8'), 'iconprovider:', ''
-                )
-                icon_menuitem.setTarget_(sc)
-                menu.addItem_(icon_menuitem)
-
-                # TODO togglable menubar icon
 
                 # Separator
                 menu.addItem_(NSMenuItem.separatorItem())
