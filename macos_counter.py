@@ -6,7 +6,7 @@ import sys
 import webbrowser
 
 from AppKit import (
-    NSApplication, NSApp, NSStatusBar, NSMenu, NSMenuItem,
+    NSApplication, NSApp, NSStatusBar, NSMenu, NSMenuItem, NSWorkspace,
 )
 from Cocoa import (
     NSKeyUpMask, NSFlagsChangedMask, NSEvent,
@@ -14,14 +14,18 @@ from Cocoa import (
     NSApplicationActivationPolicyProhibited,
     NSImage,
 )
-from Foundation import NSObject
+from Foundation import NSObject, NSLog, NSURL
+import objc
 from PyObjCTools import AppHelper
 
 from patch import patch_all
 patch_all()
 
 
-# TODO turn all `print` into NSLog or normal logging
+def log(*args):
+    NSLog(' '.join(map(str, args)))
+
+
 class KeyCounter(object):
 
     def __init__(self):
@@ -53,6 +57,8 @@ class KeyCounter(object):
         signal.signal(signal.SIGINT, self.stop)
         signal.signal(signal.SIGTERM, self.stop)
 
+        self._check_for_access()
+
         self.delegate.initializeStatusBar()
         AppHelper.runEventLoop()
 
@@ -62,6 +68,42 @@ class KeyCounter(object):
     def reset_count(self):
         self.key_count = 0
         self.title = str(self.key_count)
+
+    def _check_for_access(self):
+        '''Check for accessibility permission'''
+        # Because unsigned bundle will fail to call
+        # AXIsProcessTrustedWithOptions with a segment falt, we're
+        # not currently stepping into this function.
+        return
+        log('Begin checking for accessibility')
+        core_services = objc.loadBundle(
+            'CoreServices',
+            globals(),
+            bundle_identifier='com.apple.ApplicationServices'
+        )
+        objc.loadBundleFunctions(
+            core_services,
+            globals(),
+            [('AXIsProcessTrustedWithOptions', b'Z@')]
+        )
+        objc.loadBundleFunctions(
+            core_services,
+            globals(),
+            [('kAXTrustedCheckOptionPrompt', b'@')]
+        )
+        log('Bundle com.apple.ApplicationServices loaded')
+        try:
+            if not AXIsProcessTrustedWithOptions({kAXTrustedCheckOptionPrompt: False}):
+                log('Requesting access, Opening syspref window')
+                NSWorkspace.sharedWorkspace().openURL_(
+                    NSURL.alloc().initWithString_(
+                        'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'
+                    )
+                )
+        except:
+            # Unsigned bundle will fail to call AXIsProcessTrustedWithOptions
+            log('Error detecting accessibility permission status, KeyCounter might not work')
+        log('Access already granted')
 
     # Action alias for `quit:`
     def quit_(self, notification):
@@ -81,19 +123,19 @@ class KeyCounter(object):
                 NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(
                     mask, sc.handler
                 )
-                # rumps.rumps._log('Event handler set')
+                log('Event match mask and hander set')
 
             def applicationWillResignActive(self, notification):
                 self.applicationWillTerminate_(notification)
                 return True
 
             def applicationShouldTerminate_(self, notification):
-                print 'should terminate'
+                log('KeyCounter should terminate')
                 self.applicationWillTerminate_(notification)
                 return True
 
             def applicationWillTerminate_(self, notification):
-                print 'will terminate'
+                log('KeyCounter will terminate')
                 return None
 
             def _init_menu(self):
@@ -149,7 +191,6 @@ class KeyCounter(object):
         try:
             event_type = event.type()
             if event_type == NSKeyUp:
-                print event.charactersIgnoringModifiers()
                 self.key_count += 1
                 self.title = str(self.key_count)
             else:
