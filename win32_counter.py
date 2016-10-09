@@ -160,19 +160,31 @@ class KeyCounter(object):
                     hdc, text
                 )[0]:
                     text = ' ' + text
-                # Dynamically change window size & position
-                screen_width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
-                screen_height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+
+                # Dynamically change window size & position if necessary
                 text_extent = win32gui.GetTextExtentPoint32(hdc, text)
-                win32gui.SetWindowPos(
-                    self.HWND,
-                    None,
-                    screen_width - text_extent[0],
-                    screen_height - text_extent[1] - 40,  # height of taskbar
-                    text_extent[0],
-                    text_extent[1],
-                    0
-                )
+                window_rect = win32gui.GetClientRect(hWnd)
+                window_width = window_rect[2] - window_rect[0]
+                window_height = window_rect[3] - window_rect[1]
+
+                if window_width < text_extent[0]\
+                        or window_height < text_extent[1]:
+                    print 'change window size'
+                    screen_width = win32api.GetSystemMetrics(
+                        win32con.SM_CXSCREEN
+                    )
+                    screen_height = win32api.GetSystemMetrics(
+                        win32con.SM_CYSCREEN
+                    )
+                    win32gui.SetWindowPos(
+                        self.HWND,
+                        None,
+                        screen_width - text_extent[0],  # x
+                        screen_height - text_extent[1] - 40,  # y, height of taskbar  # noqa
+                        text_extent[0],  # width
+                        text_extent[1],  # height
+                        0
+                    )
                 # http://msdn.microsoft.com/en-us/library/windows/desktop/dd162498(v=vs.85).aspx
                 win32gui.DrawText(
                     hdc,
@@ -182,9 +194,7 @@ class KeyCounter(object):
                     (win32con.DT_TOP | win32con.DT_NOCLIP
                      | win32con.DT_SINGLELINE | win32con.DT_LEFT)
                 )
-                self.__last_text_extent = win32gui.GetTextExtentPoint32(
-                    hdc, text
-                )
+                self.__last_text_extent = text_extent
                 win32gui.EndPaint(hWnd, paintStruct)
                 return 0
 
