@@ -9,8 +9,8 @@ from AppKit import (
     NSApplication, NSApp, NSStatusBar, NSMenu, NSMenuItem,
 )
 from Cocoa import (
-    NSKeyDownMask, NSKeyUpMask, NSFlagsChangedMask, NSEvent,
-    NSKeyDown, NSKeyUp,
+    NSKeyUpMask, NSFlagsChangedMask, NSEvent,
+    NSKeyUp,
     NSApplicationActivationPolicyProhibited,
     NSImage,
 )
@@ -104,7 +104,9 @@ class KeyCounter(object):
 
             def applicationDidFinishLaunching_(self, notification):
                 mask = (NSKeyUpMask | NSFlagsChangedMask)
-                NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(mask, sc.handler)
+                NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(
+                    mask, sc.handler
+                )
                 # rumps.rumps._log('Event handler set')
 
             def applicationWillResignActive(self, notification):
@@ -124,14 +126,14 @@ class KeyCounter(object):
                 menu = NSMenu.alloc().init()
 
                 # App name menu
-                appname_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                appname_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(  # noqa
                     unicode(sc.name), None, ''
                 )
                 menu.addItem_(appname_menuitem)
 
                 # Reset menu
                 # action `xxx:` will bind to `xxx_` method of delegate
-                reset_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                reset_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(  # noqa
                     unicode('Reset'), 'reset:', 'n'
                 )
                 # Tell objc to look for action method in this specific object
@@ -142,7 +144,7 @@ class KeyCounter(object):
                 menu.addItem_(NSMenuItem.separatorItem())
 
                 # Icons8 link menu
-                icon_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                icon_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(  # noqa
                     unicode('Icons by Icons8'), 'iconprovider:', ''
                 )
                 icon_menuitem.setTarget_(sc)
@@ -154,7 +156,7 @@ class KeyCounter(object):
                 menu.addItem_(NSMenuItem.separatorItem())
 
                 # Quit menu
-                quit_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                quit_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(  # noqa
                     unicode('Quit'), 'quit:', 'q'
                 )
                 quit_menuitem.setTarget_(sc)
@@ -163,9 +165,9 @@ class KeyCounter(object):
                 self.nsstatusitem.setMenu_(menu)
 
             def initializeStatusBar(self):
-                self.nsstatusitem = NSStatusBar.systemStatusBar().statusItemWithLength_(-1)
+                self.nsstatusitem = NSStatusBar.systemStatusBar().statusItemWithLength_(-1)  # noqa
                 self.nsstatusitem.setHighlightMode_(True)
-                # This does not seem to work, we'lls display a menu item instead
+                # This does not seem to work, we'll display a menu item instead
                 # self.nsstatusitem.setToolTip_('KeyCounter')
 
                 self.setStatusBarIcon()
