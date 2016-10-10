@@ -30,12 +30,12 @@ class KeyCounter(object):
         self.__MESSAGE_TC = win32gui.RegisterWindowMessage('TaskbarCreated')
         self.__NOTIFY_ID = None
         self.MENU = None
-        self.MENU_ITEMS = [
-            ('KeyCounter', None),
-            ('Reset', self.reset_count),
-            ('Quit', self.stop),
-        ]
-        self.MENU_ITEMS.reverse()
+        self.MENU_FUNCS = {
+            'KeyCounter': None,
+            'Reset': self.reset_count,
+            'Quit': self.stop,
+        }
+        self.MENU_TEXTS = ['KeyCounter', 'Reset', 'Quit', ][::-1]
         self.__last_text_extent = (0, 0)
         self.transparency = 208
         self.SICHECK_EVENT = None
@@ -77,14 +77,41 @@ class KeyCounter(object):
             return
         self.MENU = win32gui.CreatePopupMenu()
         # Add menu items
-        title_index = len(self.MENU_ITEMS) - 1
-        for index, item in enumerate(self.MENU_ITEMS):
-            fState = win32con.MFS_DISABLED if index == title_index else None
-            menu_item, __ = win32gui_struct.PackMENUITEMINFO(
-                text=item[0], wID=index, fState=fState
-            )
-            # https://msdn.microsoft.com/en-us/library/windows/desktop/ms647988(v=vs.85).aspx
-            win32gui.InsertMenuItem(self.MENU, 0, 1, menu_item)
+        # Insert backwards
+        # https://msdn.microsoft.com/en-us/library/windows/desktop/ms647988(v=vs.85).aspx
+
+        # Quit
+        win32gui.InsertMenuItem(
+            self.MENU,
+            0,
+            1,
+            win32gui_struct.PackMENUITEMINFO(text='Quit', wID=0)[0]
+        )
+        # Separator
+        win32gui.InsertMenuItem(
+            self.MENU,
+            0,
+            1,
+            win32gui_struct.PackMENUITEMINFO(
+                wID=-1, fType=win32con.MFT_SEPARATOR
+            )[0]
+        )
+        # Reset
+        win32gui.InsertMenuItem(
+            self.MENU,
+            0,
+            1,
+            win32gui_struct.PackMENUITEMINFO(text='Reset', wID=1)[0]
+        )
+        # App name
+        win32gui.InsertMenuItem(
+            self.MENU,
+            0,
+            1,
+            win32gui_struct.PackMENUITEMINFO(
+                text='KeyCounter', wID=0, fState=win32con.MFS_DISABLED
+            )[0]
+        )
 
     def show_menu(self):
         if self.MENU is None:
@@ -104,7 +131,7 @@ class KeyCounter(object):
 
     def execute_menu_item(self, index):
         '''Execute menu item function'''
-        func = self.MENU_ITEMS[index][-1]
+        func = self.MENU_FUNCS[self.MENU_TEXTS[index]]
         if callable(func):
             func()
 
