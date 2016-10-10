@@ -14,8 +14,6 @@ import win32gui_struct
 import win32ui
 import winerror
 
-from dialogs import slider
-
 
 class KeyCounter(object):
 
@@ -32,14 +30,14 @@ class KeyCounter(object):
         self.__MESSAGE_TC = win32gui.RegisterWindowMessage('TaskbarCreated')
         self.__NOTIFY_ID = None
         self.MENU = None
-        self.MENU_ITEMS = (
-            ('Quit', self.stop),
-            ('Set transparency', self.set_transparency),
+        self.MENU_ITEMS = [
+            ('KeyCounter', None),
             ('Reset', self.reset_count),
-        )
+            ('Quit', self.stop),
+        ]
+        self.MENU_ITEMS.reverse()
         self.__last_text_extent = (0, 0)
-        self.__transparency_setter = None
-        self.transparency = 128
+        self.transparency = 208
         self.SICHECK_EVENT = None
         self.GUID = '76B80C3C-11AB-47CD-A124-BADB07F41DB8'
 
@@ -57,15 +55,6 @@ class KeyCounter(object):
 
         self.hook.KeyUp = Key_handler
         self.hook.HookKeyboard()
-
-    def set_transparency(self):
-        def on_value(value):
-            self.update_window_transparency(value)
-
-        dialog = slider.TransparencySliderDialog(
-            self.transparency, on_value=on_value
-        )
-        dialog.DoModal()
 
     def init_font(self, hdc, paintStruct):
         # http://msdn.microsoft.com/en-us/library/windows/desktop/dd145037(v=vs.85).aspx
@@ -88,9 +77,11 @@ class KeyCounter(object):
             return
         self.MENU = win32gui.CreatePopupMenu()
         # Add menu items
+        title_index = len(self.MENU_ITEMS) - 1
         for index, item in enumerate(self.MENU_ITEMS):
+            fState = win32con.MFS_DISABLED if index == title_index else None
             menu_item, __ = win32gui_struct.PackMENUITEMINFO(
-                text=item[0], wID=index
+                text=item[0], wID=index, fState=fState
             )
             # https://msdn.microsoft.com/en-us/library/windows/desktop/ms647988(v=vs.85).aspx
             win32gui.InsertMenuItem(self.MENU, 0, 1, menu_item)
@@ -167,8 +158,8 @@ class KeyCounter(object):
                 window_width = window_rect[2] - window_rect[0]
                 window_height = window_rect[3] - window_rect[1]
 
-                if window_width < text_extent[0]\
-                        or window_height < text_extent[1]:
+                if window_width != text_extent[0]\
+                        or window_height != text_extent[1]:
                     print 'change window size'
                     screen_width = win32api.GetSystemMetrics(
                         win32con.SM_CXSCREEN
