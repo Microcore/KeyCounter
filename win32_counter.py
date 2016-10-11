@@ -172,12 +172,8 @@ class KeyCounter(object):
                 win32gui.SelectObject(hdc, self.font)
 
                 text = str(self.key_count)
-                # Tricky way to clear the background using space characters
-                # extent is SIZE struct like (width_pixels, height_pixels)
-                while self.__last_text_extent[0] > win32gui.GetTextExtentPoint32(  # noqa
-                    hdc, text
-                )[0]:
-                    text = ' ' + text
+                # Clear window content
+                win32gui.DefWindowProc(hWnd, message, wParam, lParam)
 
                 # Dynamically change window size & position if necessary
                 text_extent = win32gui.GetTextExtentPoint32(hdc, text)
@@ -187,7 +183,6 @@ class KeyCounter(object):
 
                 if window_width != text_extent[0]\
                         or window_height != text_extent[1]:
-                    print 'change window size'
                     screen_width = win32api.GetSystemMetrics(
                         win32con.SM_CXSCREEN
                     )
@@ -209,8 +204,8 @@ class KeyCounter(object):
                     text,
                     len(text),  # somehow -1 does not work
                     tuple(win32gui.GetClientRect(hWnd)),
-                    (win32con.DT_TOP | win32con.DT_NOCLIP
-                     | win32con.DT_SINGLELINE | win32con.DT_LEFT)
+                    (win32con.DT_BOTTOM | win32con.DT_NOCLIP
+                     | win32con.DT_SINGLELINE | win32con.DT_RIGHT)
                 )
                 self.__last_text_extent = text_extent
                 win32gui.EndPaint(hWnd, paintStruct)
