@@ -36,3 +36,10 @@ add the `.app` bundle to app list, and check the checkbox before the app name.
 You'll need to re-launch KeyCounter after this.
 
 Linux is currently not supported. Any contribution is welcome, though.
+
+# Known issues
+
+On Windows, key events in some process cannot be monitored (seems to be an
+issue of `pyHook`), including `Task manager`, `Remote desktop`, etc.
+
+On macOS, certain key events cannot be monitored, including the function keys.
