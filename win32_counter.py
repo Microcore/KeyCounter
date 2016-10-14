@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import random
 
 import patch
@@ -19,6 +20,9 @@ class KeyCounter(object):
 
     def __init__(self):
         self.key_count = 0
+        self.daily_reset = False
+        self.today = datetime.now().day
+
         self.HWND = None
         self.hook = pyHook.HookManager()
         self.FPS = 60
@@ -52,6 +56,7 @@ class KeyCounter(object):
                 win32gui.RedrawWindow(
                     self.HWND, None, None, win32con.RDW_INVALIDATE
                 )
+            self.daily_reset and self.check_daily_reset()
 
         self.hook.KeyUp = Key_handler
         self.hook.HookKeyboard()
@@ -334,6 +339,18 @@ class KeyCounter(object):
         '''Close handle created by CreateEvent'''
         if self.SICHECK_EVENT is not None:
             win32api.CloseHandle(self.SICHECK_EVENT)
+
+    def check_daily_reset(self):
+        now = datetime.now()
+        if now.day != self.today:
+            self.do_daily_reset()
+            self.today = now.day
+
+    def do_daily_reset(self):
+        self.key_count = 1
+        win32gui.RedrawWindow(self.HWND, None, None, win32con.RDW_INVALIDATE)
+        # TODO Save self.key_count - 1 to CSV data file
+        pass
 
     def stop(self):
         if getattr(self, 'hook', None) is not None:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import os.path
 import signal
 import sys
@@ -32,6 +33,8 @@ class KeyCounter(object):
         super(KeyCounter, self).__init__()
         self.name = 'KeyCounter'
         self.key_count = 0
+        self.today = datetime.now().day
+        self.daily_reset = False
         self.icon = None
 
         self.title = str(self.key_count)
@@ -187,12 +190,24 @@ class KeyCounter(object):
 
         return AppDelegate
 
+    def do_daily_reset(self):
+        self.key_count = 1
+        self.title = str(self.key_count)
+        # TODO save self.key_count - 1 to CSV data file
+
+    def check_daily_reset(self):
+        now = datetime.now()
+        if now.day != self.today:
+            self.do_daily_reset()
+            self.today = now.day
+
     def handler(self, event):
         try:
             event_type = event.type()
             if event_type == NSKeyUp:
                 self.key_count += 1
                 self.title = str(self.key_count)
+                self.daily_reset and self.check_daily_reset()
             else:
                 pass
         except SystemExit:
