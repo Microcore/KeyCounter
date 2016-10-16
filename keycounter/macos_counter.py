@@ -11,7 +11,7 @@ from AppKit import (
 )
 from Cocoa import (
     NSKeyUpMask, NSFlagsChangedMask, NSEvent,
-    NSKeyUp,
+    NSKeyUp, NSFlagsChanged, NSDeviceIndependentModifierFlagsMask,
     NSApplicationActivationPolicyProhibited,
     NSImage,
 )
@@ -166,3 +166,14 @@ class KeyCounter(BaseKeyCounter):
                 self.nsstatusitem.setTitle_(str(sc.key_count))
 
         return AppDelegate
+
+    def handle_keyevent(self, event):
+        event_type = event.type()
+        if event_type == NSKeyUp:
+            super(KeyCounter, self).handle_keyevent(event)
+        elif event_type == NSFlagsChanged:
+            # Ref here: http://stackoverflow.com/a/6084359
+            # TODO Fix Caps Lock key count, ref:
+            # https://developer.apple.com/library/content/qa/qa1519/_index.html
+            if event.modifierFlags() & NSDeviceIndependentModifierFlagsMask == 0:  # noqa
+                super(KeyCounter, self).handle_keyevent(event)
