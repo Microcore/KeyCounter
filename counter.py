@@ -5,9 +5,9 @@ import platform
 
 def start_counter():
     if platform.system() == 'Darwin':
-        from macos_counter import KeyCounter
+        from keycounter.macos_counter import KeyCounter
     elif platform.system() == 'Windows':
-        from win32_counter import KeyCounter
+        from keycounter.win32_counter import KeyCounter
     else:
         raise NotImplementedError(
             u'Un supported platform {}'.format(platform.system())
