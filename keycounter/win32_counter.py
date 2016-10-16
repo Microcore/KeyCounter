@@ -15,13 +15,13 @@ import win32gui_struct
 import win32ui
 import winerror
 
+from .base_counter import BaseKeyCounter
 
-class KeyCounter(object):
+
+class KeyCounter(BaseKeyCounter):
 
     def __init__(self):
-        self.key_count = 0
-        self.daily_reset = False
-        self.today = datetime.now().day
+        super(KeyCounter, self).__init__()
 
         self.HWND = None
         self.hook = pyHook.HookManager()
@@ -36,29 +36,18 @@ class KeyCounter(object):
         self.MENU = None
         self.MENU_FUNCS = {
             'KeyCounter': None,
-            'Reset': self.reset_count,
             'Quit': self.stop,
         }
-        self.MENU_TEXTS = ['KeyCounter', 'Reset', 'Quit', ][::-1]
+        self.MENU_TEXTS = ['KeyCounter', 'Quit', ][::-1]
         self.__last_text_extent = (0, 0)
-        self.transparency = 208
         self.SICHECK_EVENT = None
         self.GUID = '76B80C3C-11AB-47CD-A124-BADB07F41DB8'
 
-    def reset_count(self):
-        self.key_count = 0
+    def update_ui(self):
         win32gui.RedrawWindow(self.HWND, None, None, win32con.RDW_INVALIDATE)
 
     def hook_keyboard(self):
-        def Key_handler(evt):
-            self.key_count += 1
-            if self.HWND is not None:
-                win32gui.RedrawWindow(
-                    self.HWND, None, None, win32con.RDW_INVALIDATE
-                )
-            self.daily_reset and self.check_daily_reset()
-
-        self.hook.KeyUp = Key_handler
+        self.hook.KeyUp = self.handle_keyevent
         self.hook.HookKeyboard()
 
     def init_font(self, hdc, paintStruct):
@@ -92,22 +81,6 @@ class KeyCounter(object):
             1,
             win32gui_struct.PackMENUITEMINFO(text='Quit', wID=0)[0]
         )
-        # Separator
-        win32gui.InsertMenuItem(
-            self.MENU,
-            0,
-            1,
-            win32gui_struct.PackMENUITEMINFO(
-                wID=-1, fType=win32con.MFT_SEPARATOR
-            )[0]
-        )
-        # Reset
-        win32gui.InsertMenuItem(
-            self.MENU,
-            0,
-            1,
-            win32gui_struct.PackMENUITEMINFO(text='Reset', wID=1)[0]
-        )
         # App name
         win32gui.InsertMenuItem(
             self.MENU,
@@ -139,23 +112,6 @@ class KeyCounter(object):
         func = self.MENU_FUNCS[self.MENU_TEXTS[index]]
         if callable(func):
             func()
-
-    def update_window_transparency(self, value=None):
-        if value is not None:
-            value = int(value)
-            if value < 0:
-                value = 0
-            elif value > 255:
-                value = 255
-            self.transparency = value
-
-        # http://msdn.microsoft.com/en-us/library/windows/desktop/ms633540(v=vs.85).aspx
-        win32gui.SetLayeredWindowAttributes(
-            self.HWND,
-            0x00ffffff,
-            self.transparency,  # foreground transparency, 255 means opaque
-            win32con.LWA_COLORKEY | win32con.LWA_ALPHA
-        )
 
     def create_window(self):
         def wndProc(hWnd, message, wParam, lParam):
@@ -217,10 +173,10 @@ class KeyCounter(object):
                 return 0
 
             elif message == win32con.WM_DESTROY:
-                print 'Window destroyed'
+                self.log('Window destroyed')
                 return 0
             elif message == win32con.WM_CLOSE:
-                print 'Closing the window.'
+                self.log('Closing the window')
                 return 0
 
             else:
@@ -279,7 +235,16 @@ class KeyCounter(object):
             None  # lpParam
         )
         self.HWND = hWindow
-        self.update_window_transparency()
+
+        # Foreground transparency of 208 looks good
+        # http://msdn.microsoft.com/en-us/library/windows/desktop/ms633540(v=vs.85).aspx
+        win32gui.SetLayeredWindowAttributes(
+            self.HWND,
+            0x00ffffff,
+            208,  # foreground transparency, 255 means opaque
+            win32con.LWA_COLORKEY | win32con.LWA_ALPHA
+        )
+
         # Transparent background
         win32gui.SetBkMode(hWindow, win32con.TRANSPARENT)
 
@@ -339,18 +304,6 @@ class KeyCounter(object):
         '''Close handle created by CreateEvent'''
         if self.SICHECK_EVENT is not None:
             win32api.CloseHandle(self.SICHECK_EVENT)
-
-    def check_daily_reset(self):
-        now = datetime.now()
-        if now.day != self.today:
-            self.do_daily_reset()
-            self.today = now.day
-
-    def do_daily_reset(self):
-        self.key_count = 1
-        win32gui.RedrawWindow(self.HWND, None, None, win32con.RDW_INVALIDATE)
-        # TODO Save self.key_count - 1 to CSV data file
-        pass
 
     def stop(self):
         if getattr(self, 'hook', None) is not None:

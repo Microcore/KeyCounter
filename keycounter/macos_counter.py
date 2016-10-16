@@ -22,36 +22,36 @@ from PyObjCTools import AppHelper
 from patch import patch_all
 patch_all()
 
-
-def log(*args):
-    NSLog(' '.join(map(str, args)))
+from .base_counter import BaseKeyCounter
 
 
-class KeyCounter(object):
+class KeyCounter(BaseKeyCounter):
+
+    # We'll be storing CSV data in Documents folder
+    csv_file = os.path.expanduser('~/Documents/KeyCounter/data.csv')
 
     def __init__(self):
         super(KeyCounter, self).__init__()
-        self.name = 'KeyCounter'
-        self.key_count = 0
-        self.today = datetime.now().day
-        self.daily_reset = False
-        self.icon = None
 
-        self.title = str(self.key_count)
-
-    @property
-    def title(self):
-        return self._title
-
-    @title.setter
-    def title(self, title):
-        self._title = title
+    def update_ui(self):
         try:
             self.delegate.setStatusBarTitle()
         except AttributeError:
             pass
 
+    def log(self, *args, **kwargs):
+        if len(args) > 1:
+            msg = args[0] % args[1:]
+        elif len(args) == 1:
+            msg = args[0]
+        else:
+            return
+        NSLog(msg)
+
     def start(self):
+        # Load today's count data back from data file
+        self.key_count = self.load_data(datetime.now())
+
         NSApplication.sharedApplication()
         self.delegate = self._create_app_delegate().alloc().init()
         NSApp().setDelegate_(self.delegate)
@@ -61,16 +61,13 @@ class KeyCounter(object):
         signal.signal(signal.SIGTERM, self.stop)
 
         self._check_for_access()
-
         self.delegate.initializeStatusBar()
+
         AppHelper.runEventLoop()
 
     def stop(self, *args):
+        self.save_data(datetime.now(), self.key_count)
         AppHelper.stopEventLoop()
-
-    def reset_count(self):
-        self.key_count = 0
-        self.title = str(self.key_count)
 
     def _check_for_access(self):
         '''Check for accessibility permission'''
@@ -78,7 +75,7 @@ class KeyCounter(object):
         # AXIsProcessTrustedWithOptions with a segment falt, we're
         # not currently stepping into this function.
         return
-        log('Begin checking for accessibility')
+        self.log('Begin checking for accessibility')
         core_services = objc.loadBundle(
             'CoreServices',
             globals(),
@@ -94,10 +91,10 @@ class KeyCounter(object):
             globals(),
             [('kAXTrustedCheckOptionPrompt', b'@')]
         )
-        log('Bundle com.apple.ApplicationServices loaded')
+        self.log('Bundle com.apple.ApplicationServices loaded')
         try:
             if not AXIsProcessTrustedWithOptions({kAXTrustedCheckOptionPrompt: False}):
-                log('Requesting access, Opening syspref window')
+                self.log('Requesting access, Opening syspref window')
                 NSWorkspace.sharedWorkspace().openURL_(
                     NSURL.alloc().initWithString_(
                         'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'
@@ -105,16 +102,12 @@ class KeyCounter(object):
                 )
         except:
             # Unsigned bundle will fail to call AXIsProcessTrustedWithOptions
-            log('Error detecting accessibility permission status, KeyCounter might not work')
-        log('Access already granted')
+            self.log('Error detecting accessibility permission status, KeyCounter might not work')
+        self.log('Access already granted')
 
     # Action alias for `quit:`
     def quit_(self, notification):
         self.stop()
-
-    # Action alias for `reset:`
-    def reset_(self, notification):
-        self.reset_count()
 
     def _create_app_delegate(self):
         sc = self
@@ -124,21 +117,21 @@ class KeyCounter(object):
             def applicationDidFinishLaunching_(self, notification):
                 mask = (NSKeyUpMask | NSFlagsChangedMask)
                 NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(
-                    mask, sc.handler
+                    mask, sc.handle_keyevent
                 )
-                log('Event match mask and hander set')
+                sc.log('Event match mask and hander set')
 
             def applicationWillResignActive(self, notification):
                 self.applicationWillTerminate_(notification)
                 return True
 
             def applicationShouldTerminate_(self, notification):
-                log('KeyCounter should terminate')
+                sc.log('KeyCounter should terminate')
                 self.applicationWillTerminate_(notification)
                 return True
 
             def applicationWillTerminate_(self, notification):
-                log('KeyCounter will terminate')
+                sc.log('KeyCounter will terminate')
                 return None
 
             def _init_menu(self):
@@ -150,19 +143,8 @@ class KeyCounter(object):
                 )
                 menu.addItem_(appname_menuitem)
 
-                # Reset menu
-                # action `xxx:` will bind to `xxx_` method of delegate
-                reset_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(  # noqa
-                    unicode('Reset'), 'reset:', 'n'
-                )
-                # Tell objc to look for action method in this specific object
-                reset_menuitem.setTarget_(sc)
-                menu.addItem_(reset_menuitem)
-
-                # Separator
-                menu.addItem_(NSMenuItem.separatorItem())
-
                 # Quit menu
+                # action `xxx:` will bind to `xxx_` method of delegate
                 quit_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(  # noqa
                     unicode('Quit'), 'quit:', 'q'
                 )
@@ -177,41 +159,10 @@ class KeyCounter(object):
                 # This does not seem to work, we'll display a menu item instead
                 # self.nsstatusitem.setToolTip_('KeyCounter')
 
-                self.setStatusBarIcon()
                 self.setStatusBarTitle()
                 self._init_menu()
 
             def setStatusBarTitle(self):
-                self.nsstatusitem.setTitle_(sc.title)
-
-            def setStatusBarIcon(self):
-                if sc.icon is not None:
-                    self.nsstatusitem.setImage_(sc.icon)
+                self.nsstatusitem.setTitle_(str(sc.key_count))
 
         return AppDelegate
-
-    def do_daily_reset(self):
-        self.key_count = 1
-        self.title = str(self.key_count)
-        # TODO save self.key_count - 1 to CSV data file
-
-    def check_daily_reset(self):
-        now = datetime.now()
-        if now.day != self.today:
-            self.do_daily_reset()
-            self.today = now.day
-
-    def handler(self, event):
-        try:
-            event_type = event.type()
-            if event_type == NSKeyUp:
-                self.key_count += 1
-                self.title = str(self.key_count)
-                self.daily_reset and self.check_daily_reset()
-            else:
-                pass
-        except SystemExit:
-            AppHelper.stopEventLoop()
-        except:
-            AppHelper.stopEventLoop()
-            raise
