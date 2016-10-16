@@ -39,7 +39,13 @@ Linux is currently not supported. Any contribution is welcome, though.
 
 # Known issues
 
-On Windows, key events in some process cannot be monitored (seems to be an
-issue of `pyHook`), including `Task manager`, `Remote desktop`, etc.
+On Windows, key events in the following processes are not working properly,
+which seems to be an issue of `pyHook`:
 
-On macOS, certain key events cannot be monitored, including the function keys.
+- Task manager
+- Remote desktop
+
+On macOS, the following key events are not working properly:
+
+- Function keys (media keys will work, however)
+- Caps lock key (count only increase once if you press it twice)
