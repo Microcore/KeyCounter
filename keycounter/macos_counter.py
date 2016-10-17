@@ -64,6 +64,7 @@ class KeyCounter(BaseKeyCounter):
 
     def stop(self, *args):
         self.save_data(datetime.now(), self.key_count)
+        self.storage.export()
         AppHelper.stopEventLoop()
 
     def _check_for_access(self):
