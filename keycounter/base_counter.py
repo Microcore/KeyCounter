@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import csv
 from datetime import datetime, timedelta
+from io import open
 import logging
 import os.path
 
@@ -100,6 +101,7 @@ class BaseKeyCounter(object):
         self.log(
             'Saving data for %s into %s', day_value, self.csv_data_file
         )
+        # FIXME Update row for specified day instead of rewriting the whole file
         with open(self.csv_data_file, 'w') as wf:
             writer = csv.DictWriter(wf, self.__csv_fields)
             writer.writerow({'Date': day_value, 'Count': count,})
