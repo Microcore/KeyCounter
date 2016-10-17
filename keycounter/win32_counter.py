@@ -21,12 +21,6 @@ from .base_counter import BaseKeyCounter
 
 class KeyCounter(BaseKeyCounter):
 
-    _ws = win32com.client.Dispatch('Wscript.Shell')
-    csv_file = os.path.join(
-        _ws.SpecialFolders('MyDocuments'), 'KeyCounter', 'data.csv'
-    )
-    del _ws
-
     def __init__(self):
         super(KeyCounter, self).__init__()
 
@@ -321,6 +315,7 @@ class KeyCounter(BaseKeyCounter):
             win32gui.DestroyWindow(self.HWND)
             self.HWND = None
         self.clear_instance_check_event()
+        self.storage.export()
         raise SystemExit(0)
 
     def start(self):
