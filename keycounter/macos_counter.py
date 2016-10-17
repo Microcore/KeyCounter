@@ -144,7 +144,7 @@ class KeyCounter(BaseKeyCounter):
 
                 # App name menu
                 appname_menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(  # noqa
-                    unicode(sc.name), None, ''
+                    u'{} {}'.format(unicode(sc.name), sc.version), None, ''
                 )
                 menu.addItem_(appname_menuitem)
 
