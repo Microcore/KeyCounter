@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from datetime import datetime
+import os.path
 import random
 
 import patch
@@ -8,6 +8,7 @@ patch.patch_all()
 
 import pyHook
 import win32api
+import win32com.client
 import win32con
 import win32event
 import win32gui
@@ -19,6 +20,12 @@ from .base_counter import BaseKeyCounter
 
 
 class KeyCounter(BaseKeyCounter):
+
+    _ws = win32com.client.Dispatch('Wscript.Shell')
+    csv_file = os.path.join(
+        _ws.SpecialFolders('MyDocuments'), 'KeyCounter', 'data.csv'
+    )
+    del _ws
 
     def __init__(self):
         super(KeyCounter, self).__init__()

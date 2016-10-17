@@ -17,6 +17,12 @@ On macOS:
 pyObjc
 ```
 
+Universal (non platform-related):
+
+```
+backports.csv
+```
+
 To build from source code, you'll need `pyinstaller` as well.
 
 # How to build

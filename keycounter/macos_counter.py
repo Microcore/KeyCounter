@@ -3,8 +3,6 @@
 from datetime import datetime
 import os.path
 import signal
-import sys
-import webbrowser
 
 from AppKit import (
     NSApplication, NSApp, NSStatusBar, NSMenu, NSMenuItem, NSWorkspace,
@@ -13,7 +11,6 @@ from Cocoa import (
     NSKeyUpMask, NSFlagsChangedMask, NSEvent,
     NSKeyUp, NSFlagsChanged, NSDeviceIndependentModifierFlagsMask,
     NSApplicationActivationPolicyProhibited,
-    NSImage,
 )
 from Foundation import NSObject, NSLog, NSURL
 import objc
@@ -93,16 +90,23 @@ class KeyCounter(BaseKeyCounter):
         )
         self.log('Bundle com.apple.ApplicationServices loaded')
         try:
-            if not AXIsProcessTrustedWithOptions({kAXTrustedCheckOptionPrompt: False}):
+            if not AXIsProcessTrustedWithOptions(  # noqa
+                {kAXTrustedCheckOptionPrompt: False}  # noqa
+            ):
                 self.log('Requesting access, Opening syspref window')
                 NSWorkspace.sharedWorkspace().openURL_(
                     NSURL.alloc().initWithString_(
-                        'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'
+                        'x-apple.systempreferences:'
+                        'com.apple.preference.security'
+                        '?Privacy_Accessibility'
                     )
                 )
         except:
             # Unsigned bundle will fail to call AXIsProcessTrustedWithOptions
-            self.log('Error detecting accessibility permission status, KeyCounter might not work')
+            self.log((
+                'Error detecting accessibility permission status, '
+                'KeyCounter might not work'
+            ))
         self.log('Access already granted')
 
     # Action alias for `quit:`

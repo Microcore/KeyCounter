@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import csv
 from datetime import datetime, timedelta
 from io import open
 import logging
 import os.path
+import sys
+
+if sys.version_info.major < 3:
+    from backports import csv
+else:
+    import csv
 
 
 class BaseKeyCounter(object):
@@ -104,7 +109,7 @@ class BaseKeyCounter(object):
         # FIXME Update row for specified day instead of rewriting the whole file
         with open(self.csv_data_file, 'w') as wf:
             writer = csv.DictWriter(wf, self.__csv_fields)
-            writer.writerow({'Date': day_value, 'Count': count,})
+            writer.writerow({'Date': day_value, 'Count': count})
 
     def check_daily_reset(self):
         '''Check whether it's time to do daily reset'''
