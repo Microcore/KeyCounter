@@ -17,11 +17,7 @@ On macOS:
 pyObjc
 ```
 
-Universal (non platform-related):
-
-```
-backports.csv
-```
+Universal (non platform-related) requirements are gathered into `requirements.txt`.
 
 To build from source code, you'll need `pyinstaller` as well.
 
