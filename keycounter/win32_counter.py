@@ -35,11 +35,11 @@ class KeyCounter(BaseKeyCounter):
         self.__MESSAGE_TC = win32gui.RegisterWindowMessage('TaskbarCreated')
         self.__NOTIFY_ID = None
         self.MENU = None
+        self.APP_NAME = u'{} {}'.format(self.name, self.version)
         self.MENU_FUNCS = {
-            'KeyCounter': None,
             'Quit': self.stop,
         }
-        self.MENU_TEXTS = ['KeyCounter', 'Quit', ][::-1]
+        self.MENU_TEXTS = [self.APP_NAME, 'Quit', ][::-1]
         self.__last_text_extent = (0, 0)
         self.SICHECK_EVENT = None
         self.GUID = '76B80C3C-11AB-47CD-A124-BADB07F41DB8'
@@ -110,7 +110,7 @@ class KeyCounter(BaseKeyCounter):
 
     def execute_menu_item(self, index):
         '''Execute menu item function'''
-        func = self.MENU_FUNCS[self.MENU_TEXTS[index]]
+        func = self.MENU_FUNCS.get(self.MENU_TEXTS[index], None)
         if callable(func):
             func()
 

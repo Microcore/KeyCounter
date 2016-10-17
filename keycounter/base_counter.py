@@ -7,11 +7,14 @@ import os.path
 
 from .storage import CountDataStorage
 
+__version__ = '0.0.6'
+
 
 class BaseKeyCounter(object):
     '''Base skeleton for a KeyCounter instance'''
 
     name = 'KeyCounter'
+    version = __version__
 
     def __init__(self):
         '''
