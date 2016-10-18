@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
-from io import open
 import logging
-import os.path
 
 from .storage import CountDataStorage
 
@@ -46,11 +44,12 @@ class BaseKeyCounter(object):
 
     def start(self):
         '''Start the event loop'''
-        raise NotImplementedError(u'Should be implemented in subclass')
+        self.key_count = self.load_data(datetime.now())
 
     def stop(self):
         '''Stop the event loop and save current count'''
-        raise NotImplementedError(u'Should be implemented in subclass')
+        self.save_data(datetime.now(), self.key_count)
+        self.storage.export()
 
     def do_daily_reset(self):
         '''Reset count and start a new day'''

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os.path
 import random
 
 import patch
@@ -8,7 +7,6 @@ patch.patch_all()
 
 import pyHook
 import win32api
-import win32com.client
 import win32con
 import win32event
 import win32gui
@@ -315,7 +313,8 @@ class KeyCounter(BaseKeyCounter):
             win32gui.DestroyWindow(self.HWND)
             self.HWND = None
         self.clear_instance_check_event()
-        self.storage.export()
+
+        super(KeyCounter, self).stop()
         raise SystemExit(0)
 
     def start(self):
@@ -324,6 +323,9 @@ class KeyCounter(BaseKeyCounter):
                 self.stop()
             except SystemExit:
                 return win32gui.PostQuitMessage(0)
+
+        # Load today's count data back from data file
+        super(KeyCounter, self).start()
 
         self.hook_keyboard()
         self.create_window()

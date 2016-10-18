@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from datetime import datetime
 import os.path
 import signal
 
@@ -47,7 +46,7 @@ class KeyCounter(BaseKeyCounter):
 
     def start(self):
         # Load today's count data back from data file
-        self.key_count = self.load_data(datetime.now())
+        super(KeyCounter, self).start()
 
         NSApplication.sharedApplication()
         self.delegate = self._create_app_delegate().alloc().init()
@@ -63,8 +62,7 @@ class KeyCounter(BaseKeyCounter):
         AppHelper.runEventLoop()
 
     def stop(self, *args):
-        self.save_data(datetime.now(), self.key_count)
-        self.storage.export()
+        super(KeyCounter, self).stop()
         AppHelper.stopEventLoop()
 
     def _check_for_access(self):
