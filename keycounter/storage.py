@@ -5,7 +5,6 @@ The storage abstraction layer.
 Currently using TinyDB as actual storage, and exports to a CSV file.
 '''
 
-from datetime import datetime
 import os.path
 import platform
 import sys
@@ -16,7 +15,6 @@ else:
     import csv
 
 import tinydb
-from tinydb_serialization import Serializer
 
 
 class CountDataStorage(object):
@@ -80,11 +78,12 @@ class CountDataStorage(object):
           - day: <datetime>
         Returns: <int> count
         '''
+        date = day.strftime(self.__date_format)
         Day = tinydb.Query()
-        day = self.__db.get(Day.Date == day.strftime(self.__date_format))
-        if day is None:
+        record = self.__db.get(Day.Date == date)
+        if record is None:
             return 0
-        return day['Count']
+        return record['Count']
 
     def export(self):
         '''
