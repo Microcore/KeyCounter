@@ -22,7 +22,7 @@ class BaseKeyCounter(object):
         - Start event loop
         '''
         self.key_count = 0
-        self.daily_reset = False
+        self.daily_reset = True
 
         self.today = datetime.now().day
         self.setup_storage()
