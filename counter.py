@@ -9,7 +9,7 @@ from keycounter.base_counter import __version__
 
 def parse_options():
     '''Parse options and return result'''
-    parser = argparse.ArgumentParser(prog='KeyCounter', version=__version__)
+    parser = argparse.ArgumentParser(version=__version__)
     parser.add_argument(
         '--port',
         metavar='N',
