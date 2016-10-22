@@ -7,26 +7,19 @@ and automatically exports data into CSV file for your future use.
 
 # Requirements
 
-On Windows:
+Requirements are packed into `requirements` folder. If you want to build form
+source code, you'll need to install the requirements listed in
+`dev-requirements.txt` too.
 
-```
-pywin32
-pyHook
-```
-
-On macOS:
-
-```
-pyObjc
-```
-
-Universal (non platform-related) requirements are gathered into `requirements.txt`.
-
-To build from source code, you'll need `pyinstaller` as well.
+On Windows there is another requirement you need to manually install, which is
+`pywin32`.
 
 # How to build
 
-Run `pyinstaller --clean --noconfirm counter.spec`.
+Run `python build.py`. This will produce:
+
+- The EXE executable file `dist/KeyCounter.exe` on Windows.
+- The DMG disk image file `dist/KeyCounter.dmg` on macOS.
 
 # How to use
 

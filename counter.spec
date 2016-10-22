@@ -1,5 +1,21 @@
 # -*- mode: python -*-
+import ast
+from io import open
+import os.path
+import re
+
 from PyInstaller import compat
+
+version_line = None
+app_version = None
+with open(os.path.join('keycounter', 'base_counter.py')) as rvf:
+    for line in rvf.readlines():
+        if 'version' in line:
+            version_line = line
+            break
+
+version_re = re.compile('__version__ = (.+)\n')
+app_version = ast.literal_eval(version_re.findall(version_line)[0])
 
 block_cipher = None
 
@@ -41,13 +57,14 @@ if compat.is_darwin:
     app = BUNDLE(
         coll,
         name='KeyCounter.app',
-        icon=os.path.join(compat.getcwd(), 'resources', 'Unchecked Circle Filled.icns'),
+        icon=None,
         bundle_identifier='org.microcore.keycounter',
         info_plist={
             'NSHighResolutionCapable': 'True',
             # TODO i18n app name
             'CFBundleName': 'KeyCounter',
-            # 'CFBundleVersion': '',
+            'CFBundleVersion': app_version or '',
+            'CFBundleShortVersionString': app_version or '',
             'LSApplicationCategoryType': 'Productivity',
             'LSMinimumSystemVersion': '10.10',
             'NSHumanReadableCopyright': 'Copyright © 2016 Microcore Team All rights reserved.',
