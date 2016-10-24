@@ -27,7 +27,7 @@ class KeyCounter(BaseKeyCounter):
         self.FPS = 60
         self.MSPF = int(round(1000.0 / self.FPS))
         self.font = None
-        self.tooltip = 'Key Counter'
+        self.tooltip = self.name
         # Private message to be used in THIS program ONLY
         self.MESSAGE = random.randint(win32con.WM_USER, 0x7FFF)
         self.__MESSAGE_TC = win32gui.RegisterWindowMessage('TaskbarCreated')
@@ -86,7 +86,7 @@ class KeyCounter(BaseKeyCounter):
             0,
             1,
             win32gui_struct.PackMENUITEMINFO(
-                text='KeyCounter', wID=0, fState=win32con.MFS_DISABLED
+                text=self.APP_NAME, wID=0, fState=win32con.MFS_DISABLED
             )[0]
         )
 
