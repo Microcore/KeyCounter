@@ -1,3 +1,5 @@
 backports.csv; python_version < '3.0'
 tinydb
-pyObjc; sys_platform == 'darwin'
+PyObjc-core; sys_platform == 'darwin'
+pyObjc-framework-Cocoa; sys_platform == 'darwin'
+pyObjc-framework-Quartz; sys_platform == 'darwin'

@@ -1,2 +1,4 @@
+-r requirements.txt
 pyinstaller
 dmgbuild; sys_platform == 'darwin'
+pytest
