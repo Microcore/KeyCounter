@@ -55,7 +55,7 @@ class BaseKeyCounter(object):
         '''Reset count and start a new day'''
         self.log('Perform daily reset')
         yesterday_count = self.key_count - 1
-        self.save_data(self.day, yesterday_count)
+        self.save_data(self.today, yesterday_count)
         self.storage.export()
         self.key_count -= yesterday_count
         if self.key_count < 0:
