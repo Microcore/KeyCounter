@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 import platform
 import subprocess
 import sys
+
+PYTHON_SCRIPTS_DIR = os.path.join(os.path.dirname(sys.executable), 'Scripts')
 
 
 def execute(cmd):
@@ -18,7 +21,7 @@ def build_macos():
     Build DMG for macOS platform
     '''
     execute([
-        'pyinstaller',
+        os.path.join(PYTHON_SCRIPTS_DIR, 'pyinstaller'),
         '--clean',
         '--noconfirm',
         'counter.spec',
@@ -35,7 +38,7 @@ def build_win32():
     Build EXE for win32 platform
     '''
     execute([
-        'pyinstaller',
+        os.path.join(PYTHON_SCRIPTS_DIR, 'pyinstaller'),
         '--clean',
         '--noconfirm',
         'counter.spec',
