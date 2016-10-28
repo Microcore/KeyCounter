@@ -1,5 +1,7 @@
 # KeyCounter
 
+[![Build status](https://ci.appveyor.com/api/projects/status/la2d42vxji2h7pwx?svg=true)](https://ci.appveyor.com/project/JokerQyou/keycounter)
+
 How many keys do you press each day?
 
 KeyCounter is a small GUI application that continuously counts your key press,
