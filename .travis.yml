@@ -1,0 +1,11 @@
+os:
+    - osx
+osx_image: beta-xcode6.1
+language: python
+python:
+    - '2.7'
+
+install:
+    - pip install -r requirements/dev-requirements.txt
+
+script: tox
