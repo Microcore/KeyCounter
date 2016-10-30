@@ -21,7 +21,9 @@ def build_macos():
     Build DMG for macOS platform
     '''
     execute([
-        os.path.join(PYTHON_SCRIPTS_DIR, 'pyinstaller'),
+        sys.executable,
+        '-m',
+        'PyInstaller',
         '--clean',
         '--noconfirm',
         'counter.spec',
