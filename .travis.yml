@@ -1,6 +1,5 @@
 language: generic
 os: osx
-sudo: required
 osx_image: beta-xcode6.2
 
 before_install: |
@@ -10,8 +9,6 @@ before_install: |
       pyenv global 2.7.9 ;
       pyenv rehash ;
       export PYTHON=`pyenv which python` ;
-      echo "Current python: `which python` `python --version`" ;
-      echo "Pyenv python: $PYTHON `$PYTHON --version`" ;
     fi
 
 install:

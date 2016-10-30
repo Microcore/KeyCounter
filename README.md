@@ -1,6 +1,7 @@
 # KeyCounter
 
 [![Build status](https://ci.appveyor.com/api/projects/status/la2d42vxji2h7pwx?svg=true)](https://ci.appveyor.com/project/JokerQyou/keycounter)
+[![Build Status](https://travis-ci.org/Microcore/KeyCounter.svg?branch=master)](https://travis-ci.org/Microcore/KeyCounter)
 
 How many keys do you press each day?
 

@@ -5,12 +5,12 @@ import platform
 import subprocess
 import sys
 
-import dmgbuild
-
 PYTHON_SCRIPTS_DIR = os.path.join(os.path.dirname(sys.executable), 'Scripts')
-DMGBUILD_SCRIPT = os.path.join(
-    os.path.dirname(dmgbuild.__file__), 'scripts', 'dmgbuild'
-)
+if platform.system() == 'Darwin':
+    import dmgbuild
+    DMGBUILD_SCRIPT = os.path.join(
+        os.path.dirname(dmgbuild.__file__), 'scripts', 'dmgbuild'
+    )
 
 
 def execute(cmd):
