@@ -6,9 +6,9 @@ python:
     - '2.7'
 
 before_install:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python -m pip install -U pip ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo python -m pip install -U pip ; fi
 
 install:
-    - pip install -r requirements/dev-requirements.txt
+    - sudo pip install -r requirements/dev-requirements.txt
 
 script: tox
