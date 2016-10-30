@@ -10,6 +10,7 @@ before_install: |
       pyenv install --list | grep "2.7" ;
       PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 2.7.9 ;
       pyenv global 2.7.9 ;
+      pyenv rehash ;
       export PYTHON=`pyenv which python` ;
       which python ;
       $PYTHON --version ;
