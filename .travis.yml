@@ -6,15 +6,15 @@ python:
     - '2.7'
 
 before_install:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade pyenv ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo pyenv install --list ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo pyenv install 2.7.12 ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo pyenv global 2.7.12 ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo python --version ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo python -m pip install -U pip setuptools ; fi
+    # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
+    # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade pyenv ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv install --list ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv install 2.7.12 ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv global 2.7.12 ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python --version ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python -m pip install -U pip setuptools ; fi
 
 install:
-    - sudo pip install -r requirements/dev-requirements.txt
+    - pip install -r requirements/dev-requirements.txt
 
-script: tox
+script: which tox && which python && python --version && tox
