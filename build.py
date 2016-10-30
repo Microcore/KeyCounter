@@ -6,6 +6,11 @@ import subprocess
 import sys
 
 PYTHON_SCRIPTS_DIR = os.path.join(os.path.dirname(sys.executable), 'Scripts')
+if platform.system() == 'Darwin':
+    import dmgbuild
+    DMGBUILD_SCRIPT = os.path.join(
+        os.path.dirname(dmgbuild.__file__), 'scripts', 'dmgbuild'
+    )
 
 
 def execute(cmd):
@@ -21,13 +26,16 @@ def build_macos():
     Build DMG for macOS platform
     '''
     execute([
-        os.path.join(PYTHON_SCRIPTS_DIR, 'pyinstaller'),
+        sys.executable,
+        '-m', 'PyInstaller',
         '--clean',
         '--noconfirm',
         'counter.spec',
     ])
     execute([
-        'dmgbuild', '-s', 'dmgbuild_conf.py',
+        sys.executable,
+        '-m', DMGBUILD_SCRIPT,
+        '-s', 'dmgbuild_conf.py',
         'KeyCounter',
         'dist/KeyCounter.dmg',
     ])
