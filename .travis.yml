@@ -6,7 +6,7 @@ python:
     - '2.7'
 
 before_install:
-    - if [[ "%TRAVIS_OS_NAME" == "osx" ]]; then sudo pyenv install 2.7.12 ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo pyenv install 2.7.12 ; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo pyenv global 2.7.12 ; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo python --version ; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo python -m pip install -U pip setuptools ; fi
