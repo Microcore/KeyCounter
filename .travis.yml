@@ -12,13 +12,13 @@ before_install: |
       pyenv global 2.7.9 ;
       export PYTHON=`pyenv which python` ;
       which python ;
-      python --version ;
+      $PYTHON --version ;
       wget -c https://bootstrap.pypa.io/get-pip.py ;
-      python get-pip.py ;
-      python -m pip install -U pip setuptools ;
+      $PYTHON get-pip.py ;
+      $PYTHON -m pip install -U pip setuptools ;
     fi
 
 install:
-    - python -m pip install -r requirements/dev-requirements.txt
+    - $PYTHON -m pip install -r requirements/dev-requirements.txt
 
-script: which tox && which python && python --version && tox
+script: which tox && which python && $PYTHON --version && tox
