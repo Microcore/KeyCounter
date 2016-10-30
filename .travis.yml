@@ -21,4 +21,8 @@ before_install: |
 install:
     - $PYTHON -m pip install -r requirements/dev-requirements.txt
 
-script: which tox && which python && $PYTHON --version && tox
+script: |
+    which tox ;
+    $PYTHON --version
+    $PYTHON -m tox
+    $PYTHON build.py
