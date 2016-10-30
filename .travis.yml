@@ -1,20 +1,24 @@
-os:
-    - osx
+language: generic
+os: osx
 sudo: required
 osx_image: beta-xcode6.2
 python:
     - '2.7'
 
-before_install:
-    # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
-    # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade pyenv ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv install --list ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv install 2.7.9 ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv global 2.7.9 ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python --version ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python -m pip install -U pip setuptools ; fi
+before_install: |
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      pyenv install --list | grep "2.7" ;
+      pyenv install 2.7.9 ;
+      pyenv global 2.7.9 ;
+      export PYTHON=`pyenv which python` ;
+      which python ;
+      python --version ;
+      wget -C https://bootstrap.pypa.io/get-pip.py ;
+      python get-pip.py ;
+      python -m pip install -U pip setuptools ;
+    fi
 
 install:
-    - pip install -r requirements/dev-requirements.txt
+    - python -m pip install -r requirements/dev-requirements.txt
 
 script: which tox && which python && python --version && tox
