@@ -13,8 +13,6 @@ before_install: |
       export PYTHON=`pyenv which python` ;
       which python ;
       $PYTHON --version ;
-      wget -c https://bootstrap.pypa.io/get-pip.py ;
-      $PYTHON get-pip.py ;
       $PYTHON -m pip install -U pip setuptools ;
     fi
 
@@ -22,7 +20,7 @@ install:
     - $PYTHON -m pip install -r requirements/dev-requirements.txt
 
 script: |
-    which tox ;
+    which dmgbuild ;
     $PYTHON --version
     $PYTHON -m tox
     $PYTHON build.py
