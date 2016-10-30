@@ -9,7 +9,7 @@ import dmgbuild
 
 PYTHON_SCRIPTS_DIR = os.path.join(os.path.dirname(sys.executable), 'Scripts')
 DMGBUILD_SCRIPT = os.path.join(
-    os.path.dirname(dmgbuil.__file__), 'scripts', 'dmgbuild'
+    os.path.dirname(dmgbuild.__file__), 'scripts', 'dmgbuild'
 )
 
 
