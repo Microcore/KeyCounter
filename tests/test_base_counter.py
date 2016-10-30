@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import unittest
 
 from keycounter.base_counter import BaseKeyCounter
+from keycounter.storage import CountDataStorage
 
 
 class BaseKeyCounterTest(unittest.TestCase):
@@ -99,6 +100,26 @@ class BaseKeyCounterTest(unittest.TestCase):
             'Count should increase by 1 by calling .update_count once'
         )
 
+    def test_save_load_config(self):
+        self.assertRaises(
+            NotImplementedError,
+            self.counter.load_config
+        )
+        self.assertRaises(
+            NotImplementedError,
+            self.counter.save_config
+        )
+
+    def test_storage(self):
+        self.counter.setup_storage()
+        self.assertIsInstance(
+            self.counter.storage,
+            CountDataStorage,
+            'BaseKeyCounter.storage should be an instance of CountDataStorage'
+        )
+
+    def test_log(self):
+        self.counter.log('BaseKeyCounter.log should log without %s', 'error')
 
 if __name__ == '__main__':
     unittest.main()
