@@ -5,7 +5,12 @@ import platform
 import subprocess
 import sys
 
+import dmgbuild
+
 PYTHON_SCRIPTS_DIR = os.path.join(os.path.dirname(sys.executable), 'Scripts')
+DMGBUILD_SCRIPT = os.path.join(
+    os.path.dirname(dmgbuil.__file__), 'scripts', 'dmgbuild'
+)
 
 
 def execute(cmd):
@@ -22,14 +27,15 @@ def build_macos():
     '''
     execute([
         sys.executable,
-        '-m',
-        'PyInstaller',
+        '-m', 'PyInstaller',
         '--clean',
         '--noconfirm',
         'counter.spec',
     ])
     execute([
-        'dmgbuild', '-s', 'dmgbuild_conf.py',
+        sys.executable,
+        '-m', DMGBUILD_SCRIPT,
+        '-s', 'dmgbuild_conf.py',
         'KeyCounter',
         'dist/KeyCounter.dmg',
     ])

@@ -2,8 +2,6 @@ language: generic
 os: osx
 sudo: required
 osx_image: beta-xcode6.2
-python:
-    - '2.7'
 
 before_install: |
     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -12,16 +10,14 @@ before_install: |
       pyenv global 2.7.9 ;
       pyenv rehash ;
       export PYTHON=`pyenv which python` ;
-      which python ;
-      $PYTHON --version ;
-      $PYTHON -m pip install -U pip setuptools ;
+      echo "Current python: `which python` `python --version`" ;
+      echo "Pyenv python: $PYTHON `$PYTHON --version`" ;
     fi
 
 install:
     - $PYTHON -m pip install -r requirements/dev-requirements.txt
 
 script: |
-    which dmgbuild ;
-    $PYTHON --version
-    $PYTHON -m tox
-    $PYTHON build.py
+    $PYTHON --version ;
+    $PYTHON -m tox ;
+    $PYTHON build.py ;
