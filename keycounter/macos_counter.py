@@ -129,12 +129,12 @@ class KeyCounter(BaseKeyCounter):
                 return True
 
             def applicationShouldTerminate_(self, notification):
-                sc.log('KeyCounter should terminate')
-                self.applicationWillTerminate_(notification)
+                sc.log('OS is asking KeyCounter for termination')
                 return True
 
             def applicationWillTerminate_(self, notification):
-                sc.log('KeyCounter will terminate')
+                sc.log('KeyCounter will terminate, saving data')
+                super(KeyCounter, sc).stop()
                 return None
 
             def _init_menu(self):
