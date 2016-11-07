@@ -14,10 +14,9 @@ Requirements are packed into `requirements` folder. If you want to build form
 source code, you'll need to install the requirements listed in
 `dev-requirements.txt` too.
 
-On Windows there is another requirement you need to manually install, which is
-`pywin32`.
-
 # How to build
+
+Currently all releases and CI builds are built with Python 2.7.
 
 Run `python build.py`. This will produce:
 
@@ -26,15 +25,28 @@ Run `python build.py`. This will produce:
 
 # How to use
 
-On Windows just launch the exe file. The number is displayed in a transparent
-window on the right bottom of your main display (right above the taskbar), and
-the window is dynamically resized when needed.
+- On Windows:
 
-On macOS you'll need to manually add the `.app` bundle to `Accessibility` list.
-To do so you should click on the `Apple menu`, and go to `System preferences` >
- `Security and privacy` > `Privacy` > `Accessibility`. Click the `+` button to
-add the `.app` bundle to app list, and check the checkbox before the app name.
-You'll need to re-launch KeyCounter after this.
+  Launch the `.exe` file directly. You can also set a startup entry for it so
+you don't need to manually run it each time your system restarts. Please note
+that some anti-virus software like Windows Defender will report KeyCounter as
+`Trojan`, but it's completely safe. Either trust KeyCounter or build the
+executable from source, it's up to you.
+
+  The count number will be displayed in a transparent window on the right
+bottom of your primary display. It will automatically adjust itself to stay
+just above the taskbar.
+
+- On macOS:
+
+  Drag the `.app` bundle from the dmg image to anywhere you want, and right
+click on it, select "Open". If the system prevents it from running, open
+"System Preferences", go to "Security and privacy", check for KeyCounter in
+"General" panel, click "Open" if the button is presented.
+
+  Then quit KeyCounter, go to "Privacy" panel in the same page, and add
+KeyCounter into the list of apps authorized to accessibility functionality.
+Launch KeyCounter again and you're good to go.
 
 Linux is currently not supported. Any contribution is welcome, though.
 
@@ -57,6 +69,7 @@ KeyCounter will count your key press, save and export data:
 
 - If you tell it to quit. (Save on quit)
 - If you press a key and it's already another day. (Daily reset)
+- If the system is shutting down or restarting.
 
 However under some circumstances you might want to get real time data. KeyCounter
 provides a lightweight socket API server for this purpose. You can launch it
