@@ -1,4 +1,4 @@
-version: 0.2.1 build {build}
+version: 0.2.2 build {build}
 install:
 - cmd: python.exe -m pip install -r requirements\dev-requirements.txt
 build_script:
