@@ -17,6 +17,22 @@ import winerror
 from .base_counter import BaseKeyCounter
 
 
+def get_workarea_rect():
+    '''Get workarea RECT on primary disply'''
+    rect = None
+    for monitor in win32api.EnumDisplayMonitors():
+        monitor_info = win32api.GetMonitorInfo(monitor[0].handle)
+        if monitor_info['Flags'] == win32con.MONITORINFOF_PRIMARY:
+            rect = monitor_info['Work']
+            break
+    if rect is None:
+        # http://msdn.microsoft.com/en-us/library/windows/desktop/ms632680(v=vs.85).aspx
+        w = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
+        h = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+        return 0, 0, w, h
+    return rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]
+
+
 class KeyCounter(BaseKeyCounter):
 
     def __init__(self):
@@ -143,21 +159,17 @@ class KeyCounter(BaseKeyCounter):
 
                 if window_width != text_extent[0]\
                         or window_height != text_extent[1]:
-                    screen_width = win32api.GetSystemMetrics(
-                        win32con.SM_CXSCREEN
-                    )
-                    screen_height = win32api.GetSystemMetrics(
-                        win32con.SM_CYSCREEN
-                    )
-                    win32gui.SetWindowPos(
-                        self.HWND,
-                        None,
-                        screen_width - text_extent[0],  # x
-                        screen_height - text_extent[1] - 40,  # y, height of taskbar  # noqa
-                        text_extent[0],  # width
-                        text_extent[1],  # height
-                        0
-                    )
+                    pass
+                _, _, screen_width, screen_height = get_workarea_rect()
+                win32gui.SetWindowPos(
+                    self.HWND,
+                    None,
+                    screen_width - text_extent[0],  # x
+                    screen_height - text_extent[1],  # y
+                    text_extent[0],  # width
+                    text_extent[1],  # height
+                    0
+                )
                 # http://msdn.microsoft.com/en-us/library/windows/desktop/dd162498(v=vs.85).aspx
                 win32gui.DrawText(
                     hdc,
@@ -171,12 +183,25 @@ class KeyCounter(BaseKeyCounter):
                 win32gui.EndPaint(hWnd, paintStruct)
                 return 0
 
-            elif message == win32con.WM_DESTROY:
-                self.log('Window destroyed')
-                return 0
             elif message == win32con.WM_CLOSE:
-                self.log('Closing the window')
-                return 0
+                self.log('Window is closing, saving data now')
+                super(KeyCounter, self).stop()
+                return win32gui.DefWindowProc(hWnd, message, wParam, lParam)
+
+            # The operating system wants to end the session
+            elif message == win32con.WM_QUERYENDSESSION:
+                self.log('Session might end soon, saving data now')
+                super(KeyCounter, self).stop()
+                return win32gui.DefWindowProc(hWnd, message, wParam, lParam)
+
+            # The operating system is ending the session
+            elif message == win32con.WM_ENDSESSION:
+                self.log(
+                    'Session %s ending',
+                    'is' if wParam == win32con.TRUE else 'is not'
+                )
+                super(KeyCounter, self).stop()
+                return win32gui.DefWindowProc(hWnd, message, wParam, lParam)
 
             else:
                 return win32gui.DefWindowProc(hWnd, message, wParam, lParam)
@@ -213,9 +238,7 @@ class KeyCounter(BaseKeyCounter):
         # Consider using: WS_DISABLED, WS_POPUP, WS_VISIBLE
         style = win32con.WS_DISABLED | win32con.WS_POPUP | win32con.WS_VISIBLE
 
-        # http://msdn.microsoft.com/en-us/library/windows/desktop/ms632680(v=vs.85).aspx
-        screen_width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
-        screen_height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+        _, _, screen_width, screen_height = get_workarea_rect()
         # We'll update window size if we need more space
         init_width = 1
         init_height = 1
@@ -252,7 +275,11 @@ class KeyCounter(BaseKeyCounter):
 
         # http://msdn.microsoft.com/en-us/library/windows/desktop/ms633545(v=vs.85).aspx
         win32gui.SetWindowPos(
-            hWindow, win32con.HWND_TOPMOST, 0, 0, 0, 0,
+            hWindow, win32con.HWND_TOPMOST,
+            screen_width - init_width,  # x
+            screen_height - init_height,  # y
+            init_width,  # width
+            init_height,  # height
             (win32con.SWP_NOACTIVATE | win32con.SWP_NOMOVE
              | win32con.SWP_NOSIZE | win32con.SWP_SHOWWINDOW)
         )
