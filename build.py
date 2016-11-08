@@ -8,9 +8,6 @@ import sys
 PYTHON_SCRIPTS_DIR = os.path.join(os.path.dirname(sys.executable), 'Scripts')
 if platform.system() == 'Darwin':
     import dmgbuild
-    DMGBUILD_SCRIPT = os.path.join(
-        os.path.dirname(dmgbuild.__file__), 'scripts', 'dmgbuild'
-    )
 
 
 def execute(cmd):
@@ -32,13 +29,12 @@ def build_macos():
         '--noconfirm',
         'counter.spec',
     ])
-    execute([
-        sys.executable,
-        '-m', DMGBUILD_SCRIPT,
-        '-s', 'dmgbuild_conf.py',
-        'KeyCounter',
+    dmgbuild.build_dmg(
         'dist/KeyCounter.dmg',
-    ])
+        'KeyCounter',
+        'dmgbuild_conf.py',
+        defines={}, lookForHiDPI=True
+    )
 
 
 def build_win32():
