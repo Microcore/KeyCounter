@@ -17,7 +17,7 @@ script: |
   $PYTHON build.py ;
 deploy:
   provider: releases
-  prerelease: true
+  # prerelease: true
   api_key:
     secure: YNfe/QwQocF6jX1OtXBGhTD2PvvesKiSPC1qS1Zs6c5JwA4o0n0kC7WFMimIVf+0dVgQ9/t8j0OlN0n6s1RMxszNMf26P7hc4ALQJ2cwqx9hdX2FVxTn5oIiSc6kOUPaWmnB2cWE646g+6Hml/vBSOVUdg5tibHDKaJdTXV8eRBVDWxUEAqa9lGpXyaajPadDHmB0mZcV98DP83UKqLotUabn85Ikk4WGDapSeYn1jekH21LTNkSKUZ3C21dW3tdRXAEqoUeAGgeJIx9z98IPEdwClUVdKGmhRuEwgBs04ksM6ycmZa/knoBPcSnD/XcmaPVSrJ2JWFyNUnRGH6GGb8+hVCyM7uDldM4x0RIJQAxan8vDG70abhkwaUqDFimHDNhFmjE44HAFjBVxLMXa3QSDSqIs920KAH3LL+S82dEwz2aPa7hD+M58sXNdpiE/EqcGVO/RTYxzaThi9OsNSfvUMYNWgyITgC15Tu5ajx60ZtwKmPDbkRC9/UshJY7hTxFlk7Cj2F2y737tG1WPL13HOjFqwQM9jfUv1bCYesbnN+xIrGNc4AYiKoGeD3N33P7W+C8qT9IBPsEbvzmu39TlBRggnoAU9RxTO4cfD5YGVykeH0l5Ig5Pr2XEFCN1c/G1H/nk3+USvQwLVs0mFlE6GkCFexrjW+BgtzEMY4=
   file: dist/KeyCounter.dmg
