@@ -4,7 +4,7 @@
 The storage abstraction layer.
 Currently using TinyDB as actual storage, and exports to a CSV file.
 '''
-
+from io import open
 import os.path
 import platform
 import sys
@@ -89,8 +89,8 @@ class CountDataStorage(object):
         '''
         Export all data into a CSV file. Will overwrite existing file.
         '''
-        with open(self.__csv_location, 'w') as wf:
-            writer = csv.DictWriter(wf, self.__csv_fields)
+        with open(self.__csv_location, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, self.__csv_fields)
             writer.writeheader()
             for day in self.__db.all():
                 writer.writerow(day)

@@ -53,7 +53,7 @@ class CountDataStorageTest(unittest.TestCase):
     def test_export(self):
         self.store.export()
         csv_fpath = self.store._CountDataStorage__csv_location
-        with open(csv_fpath) as rf:
+        with open(csv_fpath, newline='', encoding='utf-8') as rf:
             reader = csv.DictReader(rf)
             for row in reader:
                 day = datetime.strptime(row['Date'], self.format)
