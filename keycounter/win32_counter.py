@@ -138,6 +138,9 @@ class KeyCounter(BaseKeyCounter):
                 self.execute_menu_item(win32gui.LOWORD(wParam))
                 return 0
             elif message == self.__MESSAGE_TC:
+                # TaskbarCreated message indicates all tray icons have been removed,
+                # so we should add our tray icon again, not updating it.
+                self.__NOTIFY_ID = None
                 self.update_tray_icon()
                 return 0
             elif message == win32con.WM_PAINT:
