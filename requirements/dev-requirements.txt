@@ -1,4 +1,4 @@
 -r requirements.txt
-pyinstaller
+pyinstaller==3.2.1
 dmgbuild; sys_platform == 'darwin'
 tox
