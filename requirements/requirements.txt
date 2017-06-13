@@ -3,4 +3,4 @@ tinydb==3.3.0
 pypiwin32==220; sys_platform == 'win32'
 PyObjc-core==3.2.1; sys_platform == 'darwin'
 pyObjc-framework-Cocoa==3.2.1; sys_platform == 'darwin'
-pyObjc-framework-Quartz; sys_platform == 'darwin'
+pyObjc-framework-Quartz==3.2.1; sys_platform == 'darwin'
